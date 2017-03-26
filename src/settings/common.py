@@ -69,16 +69,6 @@ TEMPLATES = [
 STATIC_URL = '/static/'
 ########## END STATIC FILE CONFIGURATION
 
-########## STORAGE CONFIGURATION
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-
-AWS_HEADERS = {
-  'Cache-Control': 'max-age=31536000',  # 1 year
-}
-
-AWS_DEFAULT_ACL = None  # Not public by default
-########## END STORAGE CONFIGURATION
-
 ########## URL CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#root-urlconf
 ROOT_URLCONF = '%s.urls' % SITE_NAME
@@ -138,7 +128,6 @@ THIRD_PARTY_APPS = (
   'django_rq',
 
   # Storage
-  'storages',
 
   # Database
 
@@ -153,18 +142,11 @@ THIRD_PARTY_APPS = (
 
 LOCAL_APPS = (
   # DOMAIN
-  'src.domain.agreement',
-  'src.domain.agreement_type',
-  'src.domain.asset',
-  'src.domain.potential_agreement',
-  'src.domain.smart_view',
-  'src.domain.user',
 
   # APPS
   'src.apps.agreement_translation',
   'src.apps.api',
   'src.apps.maintenance',
-  'src.apps.playlist',
   'src.apps.read_model',
 
   # LIBS

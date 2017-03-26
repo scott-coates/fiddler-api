@@ -36,7 +36,3 @@ class AggregateBase(ABC):
 
     self.version += 1
 
-  @classmethod
-  @abstractmethod
-  def from_attrs(cls, **kwargs):
-    pass
