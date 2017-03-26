@@ -1,8 +1,8 @@
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand
 
 from src.apps.maintenance.database.service import clear_read_model
 
 
-class Command(NoArgsCommand):
-  def handle_noargs(self, **options):
+class Command(BaseCommand):
+  def handle(self, *args, **options):
     clear_read_model()
