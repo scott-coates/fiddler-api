@@ -1,12 +1,13 @@
-# region bootstrap interact
 import django
+from django.conf import settings
 from django.dispatch import receiver
 
 from src.libs.common_domain.domain_command import DomainCommand
-from src.tasks import RequestSubmitted1, populate_request, ArtistCreated
+from src.tasks import RequestSubmitted1, populate_request, ArtistCreated, create_playlist
 
 django.setup()
 
+# region bootstrap interact
 from src.libs.common_domain import aggregate_repository
 from src.libs.common_domain.aggregate_base import AggregateBase
 from src.libs.common_domain.command_signal import CommandSignal
@@ -59,7 +60,6 @@ class Request(AggregateBase):
   def _handle_submitted_1_event(self, event):
     self.id = event.id
     self.artists = event.artists
-
 
 
 class Artist(AggregateBase):
@@ -116,12 +116,28 @@ class Track:
     self.id = event.id
     self.name = event.name
 
+
 artists = """
 make war
 """
 
 artists = list(filter(bool, artists.split('\n')))
 
-send_command(-1, SubmitRequest(request_id, artists))
+# send_command(-1, SubmitRequest(request_id, artists))
+
+# endregion
+
+# region vanilla
+import spotipy
+import spotipy.util as util
+
+scope = 'playlist-modify-public'
+token = util.prompt_for_user_token('punkrockplaylist', scope, settings.SPOTIFY_CLIENT_ID,
+                                   settings.SPOTIFY_CLIENT_SECRET, 'http://localhost/')
+
+create_playlist.delay(token, 'punkrockplaylist', request_id)
+
+for artist in artists:
+  populate_request.delay(token, 'punkrockplaylist', request_id, artist)
 
 # endregion
