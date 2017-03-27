@@ -46,4 +46,4 @@ def delete_events(event_names=None):
 
 
 def _get_event_fqn(event):
-  return event.__module__ + '.' + event.__class__.__name__
+  return event.__class__.__name__

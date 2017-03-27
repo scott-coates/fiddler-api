@@ -75,7 +75,6 @@ ROOT_URLCONF = '%s.urls' % SITE_NAME
 ########## END URL CONFIGURATION
 
 ########## AUTH CONFIGURATION
-AUTH_USER_MODEL = 'read_model.AuthUser'
 ########## END AUTH CONFIGURATION
 
 ########## CORS CONFIGURATION
@@ -263,8 +262,3 @@ class Auth0Backend(object):
     return AuthUser.objects.get()
     return UserModel._default_manager.get(pk=user_id)
 
-
-AUTHENTICATION_BACKENDS = [
-  'src.settings.common.Auth0Backend',
-  'django.contrib.auth.backends.ModelBackend'
-]

@@ -3,7 +3,7 @@ import django
 from django.dispatch import receiver
 
 from src.libs.common_domain.domain_command import DomainCommand
-from src.tasks import RequestSubmitted1, populate_request
+from src.tasks import RequestSubmitted1, populate_request, ArtistCreated
 
 django.setup()
 
@@ -34,13 +34,12 @@ def submit_request(_aggregate_repository=None, **kwargs):
   _aggregate_repository.save(request, -1)
 
 
-
-
 @receiver(RequestSubmitted1.event_signal)
 def execute_asset_created_1(**kwargs):
   event = kwargs['event']
   request_id = kwargs['aggregate_id']
-  populate_request.delay(request_id, event.artists)
+  for a in event.artists:
+    populate_request.delay(request_id, a)
 
 
 class Request(AggregateBase):
@@ -50,7 +49,7 @@ class Request(AggregateBase):
     if not id:
       raise TypeError("id is required")
 
-    if not artists:
+    if not artists or not all(artists):
       raise TypeError("artists is required")
 
     ret_val._raise_event(RequestSubmitted1(id, artists))
@@ -62,11 +61,66 @@ class Request(AggregateBase):
     self.artists = event.artists
 
 
+
+class Artist(AggregateBase):
+  @classmethod
+  def from_attrs(cls, id, name):
+    ret_val = cls()
+    if not id:
+      raise TypeError("id is required")
+
+    if not name:
+      raise TypeError("name is required")
+
+    ret_val._raise_event(ArtistCreated(id, name))
+
+    return ret_val
+
+  def _handle_created_1_event(self, event):
+    self.id = event.id
+    self.name = event.name
+
+
+class Album:
+  def __init__(self, id, name, artist_id):
+    if not id:
+      raise TypeError("id is required")
+
+    if not name:
+      raise TypeError("name is required")
+
+    if not artist_id:
+      raise TypeError("artist_id is required")
+
+    self.id = id
+    self.name = name
+    self.artist_id = artist_id
+
+
+class Track:
+  def __init__(self, id, name, album_id):
+    if not id:
+      raise TypeError("id is required")
+
+    if not name:
+      raise TypeError("name is required")
+
+    if not album_id:
+      raise TypeError("album_id is required")
+
+    self.id = id
+    self.name = name
+    self.album_id = album_id
+
+  def _handle_created_1_event(self, event):
+    self.id = event.id
+    self.name = event.name
+
 artists = """
 make war
 """
 
-artists = artists.split('\n')
+artists = list(filter(bool, artists.split('\n')))
 
 send_command(-1, SubmitRequest(request_id, artists))
 

@@ -5,7 +5,7 @@ from src.apps.read_model.relational.models import ReadModel
 from src.apps.read_model.relational.user.managers import AuthUserManager
 
 
-class AuthUser(ReadModel, PermissionsMixin):
+class AuthUser(ReadModel):
   # todo this is not really a read model, it's part of the app/domain i'd say.
   objects = AuthUserManager()
 
