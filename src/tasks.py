@@ -20,14 +20,6 @@ def populate_request(token,username, request_id, artist_name):
 
 
 
-class RequestSubmitted1(DomainEvent):
-  event_func_name = 'submitted_1'
-  event_signal = EventSignal()
-
-  @initializer
-  def __init__(self, id, artists):
-    super().__init__()
-
 
 class ArtistCreated(DomainEvent):
   event_func_name = 'created_1'

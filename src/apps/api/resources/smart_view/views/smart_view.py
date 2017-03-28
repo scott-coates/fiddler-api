@@ -5,8 +5,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.conf import settings
 
-from src.domain.smart_view import command_handlers
-from src.domain.smart_view.commands import CreateSmartView, UpdateSmartViewAttrs
+from src.domain.request import command_handlers
+from src.domain.request.commands import CreateSmartView, UpdateSmartViewAttrs
 from src.libs.common_domain import dispatcher
 
 from src.apps.common import constants

@@ -6,11 +6,11 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import FileUploadParser
 from rest_framework.response import Response
 
-from src.apps.agreement_translation.services import agreement_translation_service
+from src.apps.music_discovery.service import agreement_translation_service
 from src.apps.common import constants
 from src.apps.read_model.realtime.agreement import services as realtime_agreement_service
-from src.domain.agreement.commands import UpdateAgreementAttrs, DeleteAgreement, DeleteArtifact, CreateArtifact
-from src.domain.agreement.entities import Agreement
+from src.domain.artist.commands import UpdateAgreementAttrs, DeleteAgreement, DeleteArtifact, CreateArtifact
+from src.domain.artist.entities import Agreement
 from src.domain.asset import command_handlers as asset_command_handlers
 from src.domain.asset.commands import CreateAssetFromFile
 from src.domain.potential_agreement.commands import CreatePotentialAgreement, CompletePotentialAgreement

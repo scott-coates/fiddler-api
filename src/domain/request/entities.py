@@ -1,4 +1,4 @@
-from src.domain.smart_view.events import SmartViewCreated1, SmartViewNameChanged1, SmartViewQueryChanged1
+from src.domain.request.events import SmartViewCreated1, SmartViewNameChanged1, SmartViewQueryChanged1
 from src.libs.common_domain.aggregate_base import AggregateBase
 
 

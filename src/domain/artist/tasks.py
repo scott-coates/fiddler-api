@@ -3,9 +3,9 @@ import logging
 from django.core.exceptions import ObjectDoesNotExist
 from django_rq import job
 
-from src.domain.agreement.commands import CreateAgreementFromPotentialAgreement, SendAgreementAlerts
-from src.domain.agreement.entities import Agreement
-from src.domain.agreement import services
+from src.domain.artist.commands import CreateArtist, SendAgreementAlerts
+from src.domain.artist.entities import Agreement
+from src.domain.artist import service
 from src.libs.common_domain import aggregate_repository
 from src.libs.common_domain import dispatcher
 from src.libs.python_utils.logging.logging_utils import log_wrapper
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 @job('high')
-def create_agreement_task(_aggregate_repo=None, _dispatcher=None, **kwargs):
+def create_artist_task(_aggregate_repo=None, _dispatcher=None, **kwargs):
   if not _aggregate_repo: _aggregate_repo = aggregate_repository
   if not _dispatcher: _dispatcher = dispatcher
 
@@ -36,7 +36,7 @@ def create_agreement_task(_aggregate_repo=None, _dispatcher=None, **kwargs):
 
     with log_wrapper(logger.debug, *log_message):
       data = dict({'id': agreement_id}, **kwargs['event'].data)
-      create_agreement = CreateAgreementFromPotentialAgreement(**data)
+      create_agreement = CreateArtist(**data)
 
       _dispatcher.send_command(agreement_id, create_agreement)
 
@@ -45,7 +45,7 @@ def create_agreement_task(_aggregate_repo=None, _dispatcher=None, **kwargs):
 def send_alerts_for_agreements_task():
   # get list of agreements where the flag is enabled, not created, and date has passed
   agreement_ids_with_due_outcome_alerts = (
-    services
+    service
       .get_agreements_with_due_outcome_alert()
       .values_list('id', flat=True)
     # putting values_list here and not in service becuase my thinking is if the service returns a django object list
@@ -54,7 +54,7 @@ def send_alerts_for_agreements_task():
   )
 
   agreement_ids_with_due_outcome_notice_alerts = (
-    services
+    service
       .get_agreements_with_due_outcome_notice_alert()
       .values_list('id', flat=True)
   )
@@ -89,13 +89,13 @@ def save_agreement_alert_task(agreement_id,
   log_message = ("Create agreement_alert task for agreement_id: %s", agreement_id)
 
   with log_wrapper(logger.info, *log_message):
-    return services.save_agreement_alert(agreement_id,
-                                         outcome_alert_date,
-                                         outcome_alert_enabled,
-                                         outcome_alert_created,
-                                         outcome_notice_alert_date,
-                                         outcome_notice_alert_enabled,
-                                         outcome_notice_alert_created).id
+    return service.save_agreement_alert(agreement_id,
+                                        outcome_alert_date,
+                                        outcome_alert_enabled,
+                                        outcome_alert_created,
+                                        outcome_notice_alert_date,
+                                        outcome_notice_alert_enabled,
+                                        outcome_notice_alert_created).id
 
 
 @job('high')
@@ -103,7 +103,7 @@ def save_agreement_search_task(agreement_id, user_id, name, counterparty, agreem
   log_message = ("Save agreement_search task for agreement_id: %s", agreement_id)
 
   with log_wrapper(logger.info, *log_message):
-    return services.save_agreement_search(agreement_id, user_id, name, counterparty, agreement_type_id).id
+    return service.save_agreement_search(agreement_id, user_id, name, counterparty, agreement_type_id).id
 
 
 @job('high')
@@ -111,4 +111,4 @@ def delete_agreement_task(agreement_id):
   log_message = ("Delete agreement_search task for agreement_id: %s", agreement_id)
 
   with log_wrapper(logger.info, *log_message):
-    return services.delete_agreement(agreement_id)
+    return service.delete_agreement(agreement_id)

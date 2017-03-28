@@ -141,9 +141,10 @@ THIRD_PARTY_APPS = (
 
 LOCAL_APPS = (
   # DOMAIN
+  'src.domain.artist',
 
   # APPS
-  'src.apps.agreement_translation',
+  'src.apps.music_discovery',
   'src.apps.api',
   'src.apps.maintenance',
   'src.apps.read_model',

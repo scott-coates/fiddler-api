@@ -1,8 +1,8 @@
 from django.dispatch import receiver
 from django.utils import timezone
 
-from src.domain.smart_view.commands import UpdateSmartViewAttrs, CreateSmartView
-from src.domain.smart_view.entities import SmartView
+from src.domain.request.commands import UpdateSmartViewAttrs, CreateSmartView
+from src.domain.request.entities import SmartView
 from src.libs.common_domain import aggregate_repository
 from src.libs.python_utils.id.id_utils import generate_id
 

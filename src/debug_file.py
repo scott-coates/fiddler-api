@@ -128,16 +128,16 @@ artists = list(filter(bool, artists.split('\n')))
 # endregion
 
 # region vanilla
-import spotipy
-import spotipy.util as util
-
-scope = 'playlist-modify-public'
-token = util.prompt_for_user_token('punkrockplaylist', scope, settings.SPOTIFY_CLIENT_ID,
-                                   settings.SPOTIFY_CLIENT_SECRET, 'http://localhost/')
-
-create_playlist.delay(token, 'punkrockplaylist', request_id)
-
-for artist in artists:
-  populate_request.delay(token, 'punkrockplaylist', request_id, artist)
+# import spotipy
+# import spotipy.util as util
+#
+# scope = 'playlist-modify-public'
+# token = util.prompt_for_user_token('punkrockplaylist', scope, settings.SPOTIFY_CLIENT_ID,
+#                                    settings.SPOTIFY_CLIENT_SECRET, 'http://localhost/')
+#
+# create_playlist.delay(token, 'punkrockplaylist', request_id)
+#
+# for artist in artists:
+#   populate_request.delay(token, 'punkrockplaylist', request_id, artist)
 
 # endregion

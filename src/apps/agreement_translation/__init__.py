@@ -1,1 +1,0 @@
-default_app_config = 'src.apps.agreement_translation.agreement_translation_config.AgreementTranslationConfig'
