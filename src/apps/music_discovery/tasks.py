@@ -3,6 +3,8 @@ import logging
 from django_rq import job
 
 from src.apps.music_discovery import service
+from src.domain.request.commands import RefreshPlaylistWithAlbum
+from src.libs.common_domain import dispatcher
 
 logger = logging.getLogger(__name__)
 
@@ -116,3 +118,8 @@ def discover_music_for_request_task(request_id, artist_name):
 @job('high')
 def discover_tracks_for_album_task(album_id, artist_id):
   return service.discover_tracks_for_album(album_id, artist_id)
+
+@job('high')
+def update_request_playlist_task(request_id,album_id):
+  refresh = RefreshPlaylistWithAlbum(album_id)
+  dispatcher.send_command(request_id, refresh)

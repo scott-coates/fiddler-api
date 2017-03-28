@@ -23,5 +23,5 @@ def add_album_1(**kwargs):
   artist_id = event.data['artist_id']
   r_id = kwargs['aggregate_id']
 
-  tasks.discover_tracks_for_album_task.delay(album_id, artist_id)
-  # todo chain add to reqeust
+  discover_tracks_task = tasks.discover_tracks_for_album_task.delay(album_id, artist_id)
+  tasks.update_request_playlist_task.delay(r_id, album_id, depends_on=discover_tracks_task)
