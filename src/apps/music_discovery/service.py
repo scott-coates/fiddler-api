@@ -20,19 +20,22 @@ sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 network = pylast.LastFMNetwork(settings.LAST_FM_API_KEY, settings.LAST_FM_API_SECRET)
 
 
-def discover_music_for_request(request_id, artist_name):
-  artist = network.get_artist(artist_name)
+def discover_music_for_request(request_id, root_artist_name):
+  lfm_artist = network.get_artist(root_artist_name)
 
-  result = sp.search(q='artist:"{0}"'.format(artist.name), type='artist')
+  similar_artists = lfm_artist.get_similar(2)
 
-  sp_artist = result['artists']['items'][0]
-  artist_id = _create_or_get_artist(sp_artist['name'], constants.SPOTIFY, sp_artist['id'])
+  similar_artist_names = [a.item.name for a in similar_artists]
+  all_artists_names = [lfm_artist.get_name()] + similar_artist_names
 
-  similar_artists = artist.get_similar(2)
-  return
-  for similar_artist in similar_artists:
+  for artist_name in all_artists_names:
     try:
-      albums = sp.search(q='artist:' + similar_artist.item.name, limit=50, type='album')['albums']['items']
+
+      artist = sp.search(q='artist:"{0}"'.format(artist_name), type='artist')['artists']['items'][0]
+      artist_id = _create_or_get_artist(artist['name'], constants.SPOTIFY, artist['id'])
+
+      albums = sp.search(q='artist:"{0}"'.format(artist_name), limit=50, type='album')['albums']['items']
+
 
       for album in albums:
         album_uri = album['uri']
@@ -41,15 +44,17 @@ def discover_music_for_request(request_id, artist_name):
         # release_date = get_datetime(spotify_album['release_date'])
         # if acceptable_age_threshold <= release_date:
         #   last_fm_counter += 1
-        #   data.append((similar_artist.item.name,
-        #                html.escape(similar_artist.item.get_bio_summary()).replace('\n', '').replace('|', ''),
+        #   data.append((artist_name.item.name,
+        #                html.escape(artist_name.item.get_bio_summary()).replace('\n', '').replace('|', ''),
         #                spotify_album['name'],
         #                release_date.strftime(
         #                    "%Y-%m-%d")))
         #   # todo don't call this func, use a signal - something like track_discovered.send
         #   add_to_pl(token, username, spotify_album, pl['id'])
+    except IndexError:
+      pass
     except:
-      logger.exception('discover music for', artist, ': similar', similar_artist)
+      logger.exception('discover music for %s. similar: %s', artist_name, artist_name)
 
 
 def _create_or_get_artist(name, provider_type, external_id):
