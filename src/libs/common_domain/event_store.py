@@ -25,10 +25,10 @@ def load_events(event_type, stream_id, _event_repository=None):
   return events
 
 
-def load_domain_event_from_event_record(event_record, _event_service=None):
+def load_domain_event_from_event_record(event_record, aggregate_class, _event_service=None):
   if not _event_service:    _event_service = event_service
 
-  domain_event = _event_service.load_domain_event_from_event_record(event_record)
+  domain_event = _event_service.load_domain_event_from_event_record(event_record, aggregate_class)
   return domain_event
 
 

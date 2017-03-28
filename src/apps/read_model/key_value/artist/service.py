@@ -14,10 +14,32 @@ def add_unique_artist_id(artist_id, provider_type, external_id):
   return ret_val
 
 
+def add_unique_album_id(album_id, provider_type, external_id):
+  kdb = get_key_value_client()
+
+  ret_val = kdb.setnx(get_read_model_name('external_album_id:{0}:{1}', provider_type, external_id), album_id)
+
+  return ret_val
+
+
 def get_unique_artist_id(provider_type, external_id):
   kdb = get_key_value_client()
 
   ret_val = kdb.get(get_read_model_name('external_artist_id:{0}:{1}', provider_type, external_id))
+
+  if ret_val:
+    ret_val = ret_val.decode()
+
+  return ret_val
+
+
+def get_unique_album_id(provider_type, external_id):
+  kdb = get_key_value_client()
+
+  ret_val = kdb.get(get_read_model_name('external_album_id:{0}:{1}', provider_type, external_id))
+
+  if ret_val:
+    ret_val = ret_val.decode()
 
   return ret_val
 

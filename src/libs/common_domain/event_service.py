@@ -1,11 +1,11 @@
-from src.libs.python_utils.types.type_utils import load_object
+from src.libs.python_utils.types.type_utils import load_relative_object
 
 
-def load_domain_event_from_event_record(event_record):
+def load_domain_event_from_event_record(event_record, aggregate_class):
   event_name = event_record.event_name
   event_data = event_record.event_data
 
-  domain_event_class = load_object(event_name)
+  domain_event_class = load_relative_object(aggregate_class, '.events', event_name)
 
   try:
     domain_event = domain_event_class.hydrate(**event_data)

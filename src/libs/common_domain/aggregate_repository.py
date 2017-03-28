@@ -34,7 +34,7 @@ def get(aggregate_class, aggregate_id, _event_store=None):
     raise ObjectDoesNotExist("aggregate doesn't exist: {0}".format(aggregate_id))
 
   for event in events:
-    domain_event = _event_store.load_domain_event_from_event_record(event)
+    domain_event = _event_store.load_domain_event_from_event_record(event,aggregate_class)
     aggregate_instance.apply_event(domain_event)
 
   return aggregate_instance

@@ -5,9 +5,9 @@ import spotipy
 from django.conf import settings
 from spotipy.oauth2 import SpotifyClientCredentials
 
-from src.apps.read_model.key_value.artist.service import get_unique_artist_id
-from src.domain.artist.commands import CreateArtist
-from src.domain.artist.errors import DuplicateArtistError
+from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_unique_album_id
+from src.domain.artist.commands import CreateArtist, CreateAlbum
+from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError
 from src.domain.common import constants
 from src.libs.common_domain.dispatcher import send_command
 from src.libs.python_utils.id.id_utils import generate_id
@@ -36,21 +36,22 @@ def discover_music_for_request(request_id, root_artist_name):
 
       albums = sp.search(q='artist:"{0}"'.format(artist_name), limit=50, type='album')['albums']['items']
 
-
       for album in albums:
-        album_uri = album['uri']
-
-        spotify_album = sp.album(album_uri)
-        # release_date = get_datetime(spotify_album['release_date'])
-        # if acceptable_age_threshold <= release_date:
-        #   last_fm_counter += 1
-        #   data.append((artist_name.item.name,
-        #                html.escape(artist_name.item.get_bio_summary()).replace('\n', '').replace('|', ''),
-        #                spotify_album['name'],
-        #                release_date.strftime(
-        #                    "%Y-%m-%d")))
-        #   # todo don't call this func, use a signal - something like track_discovered.send
-        #   add_to_pl(token, username, spotify_album, pl['id'])
+        album_id = get_unique_album_id(constants.SPOTIFY, album['id'])
+        if not album_id:
+          album_uri = album['uri']
+          sp_album = sp.album(album_uri)
+          _create_or_get_album(sp_album['name'], sp_album['release_date'], constants.SPOTIFY, sp_album['id'], artist_id)
+          # release_date = get_datetime(spotify_album['release_date'])
+          # if acceptable_age_threshold <= release_date:
+          #   last_fm_counter += 1
+          #   data.append((artist_name.item.name,
+          #                html.escape(artist_name.item.get_bio_summary()).replace('\n', '').replace('|', ''),
+          #                spotify_album['name'],
+          #                release_date.strftime(
+          #                    "%Y-%m-%d")))
+          #   # todo don't call this func, use a signal - something like track_discovered.send
+          #   add_to_pl(token, username, spotify_album, pl['id'])
     except IndexError:
       pass
     except:
@@ -64,6 +65,17 @@ def _create_or_get_artist(name, provider_type, external_id):
     ca = CreateArtist(artist_id, name, provider_type, external_id)
     send_command(artist_id, ca)
   except DuplicateArtistError:
+    artist_id = get_unique_artist_id(provider_type, external_id)
+
+  return artist_id
+
+
+def _create_or_get_album(name, release_date, provider_type, external_id, artist_id):
+  try:
+    album_id = generate_id()
+    ca = CreateAlbum(album_id, name, release_date, provider_type, external_id, artist_id)
+    send_command(artist_id, ca)
+  except DuplicateAlbumError:
     artist_id = get_unique_artist_id(provider_type, external_id)
 
   return artist_id

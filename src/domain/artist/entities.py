@@ -1,8 +1,12 @@
-from src.domain.artist.events import ArtistCreated1
+from src.domain.artist.events import ArtistCreated1, AlbumAdded
 from src.libs.common_domain.aggregate_base import AggregateBase
 
 
 class Artist(AggregateBase):
+  def __init__(self):
+    super().__init__()
+    self.albums = []
+
   @classmethod
   def from_attrs(cls, **kwargs):
     ret_val = cls()
@@ -17,9 +21,15 @@ class Artist(AggregateBase):
 
     return ret_val
 
+  def add_album(self, **kwargs):
+    self._raise_event(AlbumAdded(**kwargs))
+
   def _handle_created_1_event(self, event):
     self.id = event.id
     self.name = event.name
+
+  def _handle_album_added_1_event(self, event):
+    self.albums.append(event.id)
 
   def __str__(self):
     return 'Artist {id}: {name}'.format(id=self.id, name=self.name)
