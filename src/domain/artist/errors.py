@@ -6,6 +6,6 @@ class DuplicateAlbumError(Exception):
   """Some kind of problem with charging a payment."""
   pass
 
-class DuplicateTracksError(Exception):
+class DuplicateTrackError(Exception):
   """Some kind of problem with charging a payment."""
   pass

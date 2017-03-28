@@ -35,7 +35,7 @@ def discover_music_for_request(request_id, root_artist_name):
     try:
 
       artist = sp.search(q='artist:"{0}"'.format(artist_name), type='artist')['artists']['items'][0]
-      artist_id = _create_or_get_artist(artist['name'], constants.SPOTIFY, artist['id'])
+      artist_id = _create_artist(artist['name'], constants.SPOTIFY, artist['id'])
 
       albums = sp.search(q='artist:"{0}"'.format(artist_name), limit=50, type='album')['albums']['items']
 
@@ -47,9 +47,11 @@ def discover_music_for_request(request_id, root_artist_name):
           sp_album = sp.album(album_uri)
 
           release_date = get_datetime(sp_album['release_date'])
-          album_id = _create_or_get_album(sp_album['name'], release_date, constants.SPOTIFY, sp_album['id'], artist_id)
+          album_id = _create_album(sp_album['name'], release_date, constants.SPOTIFY, sp_album['id'], artist_id)
+        else:
+          release_date = get_album_external_id(album_id)['release_date']
 
-          _add_album_to_request(request_id, album_id, release_date, )
+        _add_album_to_request(request_id, album_id, release_date, artist_id)
     except IndexError:
       # this artist isn't in spotify but is in last fm
       pass
@@ -57,10 +59,10 @@ def discover_music_for_request(request_id, root_artist_name):
       logger.exception('discover music for %s. similar: %s', artist_name, artist_name)
 
 
-def discover_tracks_for_album(album_id):
+def discover_tracks_for_album(album_id, artist_id):
   track_info = get_tracks_from_album(album_id)
   if not track_info:
-    provider_type, external_id = get_album_external_id(album_id)
+    external_id = get_album_external_id(album_id)['external_id']
 
     sp_album = sp.album(external_id)
     tracks = sp_album['tracks']['items']
@@ -68,20 +70,20 @@ def discover_tracks_for_album(album_id):
     track_features = sp.audio_features(track_ids)
     track_data = []
 
-    for track_info,track_feature in zip(tracks,track_features):
+    for track_info, track_feature in zip(tracks, track_features):
       track_data.append({
-        'external_id':track_info['id'],
-        'name':track_info['name'],
-        'features':track_feature
+        'name': track_info['name'],
+        'features': track_feature,
+        'provider_type': constants.SPOTIFY,
+        'external_id': track_info['id'],
+        'album_id': album_id,
       })
 
-
     at = AddTracks(track_data)
+    send_command(artist_id, at)
 
 
-
-
-def _create_or_get_artist(name, provider_type, external_id):
+def _create_artist(name, provider_type, external_id):
   artist_id = generate_id()
 
   try:
@@ -93,10 +95,10 @@ def _create_or_get_artist(name, provider_type, external_id):
   return artist_id
 
 
-def _create_or_get_album(name, release_date, provider_type, external_id, artist_id):
+def _create_album(name, release_date, provider_type, external_id, artist_id):
   try:
     album_id = generate_id()
-    ca = CreateAlbum(album_id, name, release_date, provider_type, external_id, artist_id)
+    ca = CreateAlbum(album_id, name, release_date, provider_type, external_id)
     send_command(artist_id, ca)
   except DuplicateAlbumError:
     album_id = get_unique_album_id(provider_type, external_id)
@@ -104,7 +106,7 @@ def _create_or_get_album(name, release_date, provider_type, external_id, artist_
   return album_id
 
 
-def _add_album_to_request(request_id, album_id, release_date):
-  add_album = AddAlbumToRequest(album_id, release_date)
+def _add_album_to_request(request_id, album_id, release_date, artist_id):
+  add_album = AddAlbumToRequest(album_id, release_date, artist_id, )
   send_command(request_id, add_album)
   return album_id

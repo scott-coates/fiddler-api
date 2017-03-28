@@ -10,10 +10,10 @@ class SubmitRequest(DomainCommand):
   def __init__(self, id, artists):
     pass
 
+
 class AddAlbumToRequest(DomainCommand):
   command_signal = CommandSignal()
 
   @initializer
-  def __init__(self, album_id, release_date):
+  def __init__(self, album_id, release_date, artist_id):
     pass
-

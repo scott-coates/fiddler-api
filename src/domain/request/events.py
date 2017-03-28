@@ -17,5 +17,5 @@ class AlbumAddedToRequest1(DomainEvent):
   event_signal = EventSignal()
 
   @initializer
-  def __init__(self, album_id):
+  def __init__(self, album_id, artist_id):
     super().__init__()

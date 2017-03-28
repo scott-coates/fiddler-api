@@ -1,11 +1,11 @@
 from django.dispatch import receiver
 
-from src.apps.read_model.key_value.artist.service import add_unique_artist_id, add_unique_album_id, \
-  clear_unique_album_id, clear_unique_artist_id
+from src.apps.read_model.key_value.artist.service import add_unique_artist_id, clear_unique_artist_id
 from src.domain.artist.commands import CreateArtist, CreateAlbum, AddTracks
 from src.domain.artist.entities import Artist
-from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError
+from src.domain.artist.errors import DuplicateArtistError
 from src.libs.common_domain import aggregate_repository
+from src.libs.python_utils.id.id_utils import generate_id
 
 
 @receiver(CreateArtist.command_signal)
@@ -30,21 +30,13 @@ def create_album(_aggregate_repository=None, **kwargs):
   if not _aggregate_repository: _aggregate_repository = aggregate_repository
   command = kwargs['command']
 
-  newly_added = add_unique_album_id(command.data['id'], command.data['provider_type'], command.data['external_id'])
+  ag = _aggregate_repository.get(Artist, kwargs['aggregate_id'])
 
-  if not newly_added: raise DuplicateAlbumError('album: ', command.data['id'], 'already exists.')
+  version = ag.version
 
-  try:
-    ag = _aggregate_repository.get(Artist, kwargs['aggregate_id'])
+  ag.add_album(**command.data)
 
-    version = ag.version
-
-    ag.add_album(**command.data)
-
-    _aggregate_repository.save(ag, version)
-  except:
-    clear_unique_album_id(command.data['id'], command.data['provider_type'], command.data['external_id'])
-    raise
+  _aggregate_repository.save(ag, version)
 
 
 @receiver(AddTracks.command_signal)
@@ -58,9 +50,10 @@ def add_tracks_album(_aggregate_repository=None, **kwargs):
   version = ag.version
 
   for t in tracks:
-    ag.add_album(**command.data)
+    track_id = generate_id()
+    ag.add_track(id=track_id, **t)
 
-    _aggregate_repository.save(ag, version)
+  _aggregate_repository.save(ag, version)
 
 #
 # @receiver(UpdateAgreementAttrs.command_signal)

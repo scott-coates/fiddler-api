@@ -114,5 +114,5 @@ def discover_music_for_request_task(request_id, artist_name):
 
 
 @job('high')
-def discover_tracks_for_album_task( album_id):
-  return service.discover_tracks_for_album( album_id)
+def discover_tracks_for_album_task(album_id, artist_id):
+  return service.discover_tracks_for_album(album_id, artist_id)
