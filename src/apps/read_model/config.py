@@ -9,5 +9,8 @@ class ReadModelConfig(AppConfig):
     from src.apps.read_model.relational.event_handlers import import_handlers as  import_relation_handlers
     import_relation_handlers()
 
+    from src.apps.read_model.key_value.event_handlers import import_handlers as import_kv_handlers
+    import_kv_handlers()
+
     from src.apps.read_model.realtime.event_handlers import import_handlers as import_realtime_handlers
     import_realtime_handlers()

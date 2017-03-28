@@ -5,7 +5,8 @@ import spotipy
 from django.conf import settings
 from spotipy.oauth2 import SpotifyClientCredentials
 
-from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_unique_album_id
+from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_unique_album_id, \
+  get_tracks_from_album, get_album_external_id
 from src.domain.artist.commands import CreateArtist, CreateAlbum
 from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError
 from src.domain.common import constants
@@ -54,6 +55,13 @@ def discover_music_for_request(request_id, root_artist_name):
       pass
     except:
       logger.exception('discover music for %s. similar: %s', artist_name, artist_name)
+
+
+def discover_tracks_for_album(album_id):
+  track_info = get_tracks_from_album(album_id)
+  if not track_info:
+    provider_type, external_id = get_album_external_id(album_id)
+
 
 
 def _create_or_get_artist(name, provider_type, external_id):

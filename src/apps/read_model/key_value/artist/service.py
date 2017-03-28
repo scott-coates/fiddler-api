@@ -21,6 +21,7 @@ def add_unique_album_id(album_id, provider_type, external_id):
 
   return ret_val
 
+
 def clear_unique_album_id(album_id, provider_type, external_id):
   kdb = get_key_value_client()
 
@@ -55,6 +56,37 @@ def get_unique_album_id(provider_type, external_id):
   kdb = get_key_value_client()
 
   ret_val = kdb.get(get_read_model_name('external_album_id:{0}:{1}', provider_type, external_id))
+
+  if ret_val:
+    ret_val = ret_val.decode()
+
+  return ret_val
+
+
+def set_album_external_id(album_id, provider_type, external_id):
+  kdb = get_key_value_client()
+  data = {'provider_type': provider_type, 'external_id': external_id}
+
+  ret_val = kdb.hmset(get_read_model_name('external_album_info:{0}', album_id), data)
+
+  return ret_val
+
+
+def get_album_external_id(album_id):
+  kdb = get_key_value_client()
+
+  ret_val = kdb.hgetall(get_read_model_name('external_album_info:{0}', album_id))
+
+  if ret_val:
+    ret_val = dict(map(lambda m: (m[0].decode(), m[1].decode()), ret_val.items()))
+
+  return ret_val
+
+
+def get_tracks_from_album(album_id):
+  kdb = get_key_value_client()
+
+  ret_val = kdb.get(get_read_model_name('album_tracks:{0}', album_id))
 
   if ret_val:
     ret_val = ret_val.decode()

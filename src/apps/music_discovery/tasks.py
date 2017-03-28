@@ -111,3 +111,8 @@ logger = logging.getLogger(__name__)
 @job('high')
 def discover_music_for_request_task(request_id, artist_name):
   return service.discover_music_for_request(request_id, artist_name)
+
+
+@job('high')
+def discover_tracks_for_album_task( album_id):
+  return service.discover_tracks_for_album( album_id)
