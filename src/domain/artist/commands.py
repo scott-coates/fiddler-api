@@ -17,3 +17,10 @@ class CreateAlbum(DomainCommand):
   @initializer
   def __init__(self, id, name, release_date, provider_type, external_id, artist_id):
     pass
+
+class AddTracks(DomainCommand):
+  command_signal = CommandSignal()
+
+  @initializer
+  def __init__(self, track_data):
+    pass

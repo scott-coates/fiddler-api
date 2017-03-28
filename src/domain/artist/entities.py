@@ -1,11 +1,12 @@
-from src.domain.artist.events import ArtistCreated1, AlbumAdded1
+from src.domain.artist.errors import DuplicateTracksError
+from src.domain.artist.events import ArtistCreated1, AlbumAddedToArtist1, TracksAddedToAlbum1
 from src.libs.common_domain.aggregate_base import AggregateBase
 
 
 class Artist(AggregateBase):
   def __init__(self):
     super().__init__()
-    self.albums = []
+    self._albums = []
 
   @classmethod
   def from_attrs(cls, **kwargs):
@@ -22,14 +23,27 @@ class Artist(AggregateBase):
     return ret_val
 
   def add_album(self, **kwargs):
-    self._raise_event(AlbumAdded1(**kwargs))
+    self._raise_event(AlbumAddedToArtist1(**kwargs))
+
+  def add_tracks(self, **kwargs):
+    self._raise_event(TracksAddedToAlbum1(**kwargs))
+
+  def _get_album_by_id(self, album_id):
+    album = next(album for album in self._albums if album.id == album_id)
+
+    return album
 
   def _handle_created_1_event(self, event):
     self.id = event.id
     self.name = event.name
 
   def _handle_album_added_1_event(self, event):
-    self.albums.append(event.id)
+    self._albums.append(Album(event.id, event.name))
+
+  def _handle_tracks_added_1_event(self, event):
+    album = self._get_album_by_id(event.album_id)
+    album.add_tracks(event)
+    self._albums.append(Album(event.id, event.name))
 
   def __str__(self):
     return 'Artist {id}: {name}'.format(id=self.id, name=self.name)
@@ -49,7 +63,13 @@ class Album:
     self.id = id
     self.name = name
 
+    self._tracks = []
+
     self.artist_id = artist_id
+
+  def add_tracks(self, tracks):
+    if self._tracks: raise DuplicateTracksError
+    self._tracks = tracks
 
   def __str__(self):
     return 'Album {id}: {name}'.format(id=self.id, score=self.name)

@@ -1,7 +1,7 @@
 from django.dispatch import receiver
 
 from src.apps.music_discovery import tasks
-from src.domain.request.events import RequestSubmitted1, AlbumAdded1
+from src.domain.request.events import RequestSubmitted1, AlbumAddedToRequest1
 
 
 @receiver(RequestSubmitted1.event_signal)
@@ -14,7 +14,7 @@ def execute_assignment_batch_1(**kwargs):
   for artist_name in artists:
     tasks.discover_music_for_request_task.delay(r_id, artist_name)
 
-@receiver(AlbumAdded1.event_signal)
+@receiver(AlbumAddedToRequest1.event_signal)
 def add_album_1(**kwargs):
   event = kwargs['event']
 

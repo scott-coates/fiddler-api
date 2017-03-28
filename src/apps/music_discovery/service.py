@@ -7,7 +7,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_unique_album_id, \
   get_tracks_from_album, get_album_external_id
-from src.domain.artist.commands import CreateArtist, CreateAlbum
+from src.domain.artist.commands import CreateArtist, CreateAlbum, AddTracks
 from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError
 from src.domain.common import constants
 from src.domain.request.commands import AddAlbumToRequest
@@ -61,6 +61,24 @@ def discover_tracks_for_album(album_id):
   track_info = get_tracks_from_album(album_id)
   if not track_info:
     provider_type, external_id = get_album_external_id(album_id)
+
+    sp_album = sp.album(external_id)
+    tracks = sp_album['tracks']['items']
+    track_ids = [t['id'] for t in tracks]
+    track_features = sp.audio_features(track_ids)
+    track_data = []
+
+    for track_info,track_feature in zip(tracks,track_features):
+      track_data.append({
+        'external_id':track_info['id'],
+        'name':track_info['name'],
+        'features':track_feature
+      })
+
+
+    at = AddTracks(track_data)
+
+
 
 
 def _create_or_get_artist(name, provider_type, external_id):

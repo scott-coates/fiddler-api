@@ -80,7 +80,7 @@ def get_album_external_id(album_id):
   if ret_val:
     ret_val = dict(map(lambda m: (m[0].decode(), m[1].decode()), ret_val.items()))
 
-  return ret_val
+  return ret_val['provider_type'], ret_val['external_id']
 
 
 def get_tracks_from_album(album_id):

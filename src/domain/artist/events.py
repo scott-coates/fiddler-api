@@ -12,10 +12,19 @@ class ArtistCreated1(DomainEvent):
     super().__init__()
 
 
-class AlbumAdded1(DomainEvent):
+class AlbumAddedToArtist1(DomainEvent):
   event_func_name = 'album_added_1'
   event_signal = EventSignal()
 
   @initializer
   def __init__(self, id, name, release_date, provider_type, external_id, artist_id):
+    super().__init__()
+
+
+class TracksAddedToAlbum1(DomainEvent):
+  event_func_name = 'tracks_added_1'
+  event_signal = EventSignal()
+
+  @initializer
+  def __init__(self, id, name, features, provider_type, external_id, album_id):
     super().__init__()

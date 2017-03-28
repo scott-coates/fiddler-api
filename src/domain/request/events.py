@@ -12,7 +12,7 @@ class RequestSubmitted1(DomainEvent):
     super().__init__()
 
 
-class AlbumAdded1(DomainEvent):
+class AlbumAddedToRequest1(DomainEvent):
   event_func_name = 'album_added_1'
   event_signal = EventSignal()
 
