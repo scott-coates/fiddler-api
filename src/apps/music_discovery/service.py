@@ -63,7 +63,6 @@ def discover_tracks_for_album(album_id):
     provider_type, external_id = get_album_external_id(album_id)
 
 
-
 def _create_or_get_artist(name, provider_type, external_id):
   artist_id = generate_id()
 
@@ -82,9 +81,9 @@ def _create_or_get_album(name, release_date, provider_type, external_id, artist_
     ca = CreateAlbum(album_id, name, release_date, provider_type, external_id, artist_id)
     send_command(artist_id, ca)
   except DuplicateAlbumError:
-    artist_id = get_unique_artist_id(provider_type, external_id)
+    album_id = get_unique_album_id(provider_type, external_id)
 
-  return artist_id
+  return album_id
 
 
 def _add_album_to_request(request_id, album_id, release_date):

@@ -22,6 +22,7 @@ def create_agreement(_aggregate_repository=None, **kwargs):
     _aggregate_repository.save(artist, -1)
   except:
     clear_unique_artist_id(command.data['provider_type'], command.data['external_id'])
+    raise
 
 
 @receiver(CreateAlbum.command_signal)
@@ -43,6 +44,7 @@ def create_album(_aggregate_repository=None, **kwargs):
     _aggregate_repository.save(ag, version)
   except:
     clear_unique_album_id(command.data['id'], command.data['provider_type'], command.data['external_id'])
+    raise
 
 #
 # @receiver(UpdateAgreementAttrs.command_signal)
