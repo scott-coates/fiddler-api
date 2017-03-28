@@ -1,4 +1,4 @@
-from src.domain.artist.events import ArtistCreated1, AlbumAdded
+from src.domain.artist.events import ArtistCreated1, AlbumAdded1
 from src.libs.common_domain.aggregate_base import AggregateBase
 
 
@@ -22,7 +22,7 @@ class Artist(AggregateBase):
     return ret_val
 
   def add_album(self, **kwargs):
-    self._raise_event(AlbumAdded(**kwargs))
+    self._raise_event(AlbumAdded1(**kwargs))
 
   def _handle_created_1_event(self, event):
     self.id = event.id

@@ -9,7 +9,9 @@ from src.apps.read_model.key_value.artist.service import get_unique_artist_id, g
 from src.domain.artist.commands import CreateArtist, CreateAlbum
 from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError
 from src.domain.common import constants
+from src.domain.request.commands import AddAlbumToRequest
 from src.libs.common_domain.dispatcher import send_command
+from src.libs.datetime_utils.datetime_parser import get_datetime
 from src.libs.python_utils.id.id_utils import generate_id
 
 logger = logging.getLogger(__name__)
@@ -38,21 +40,17 @@ def discover_music_for_request(request_id, root_artist_name):
 
       for album in albums:
         album_id = get_unique_album_id(constants.SPOTIFY, album['id'])
+
         if not album_id:
           album_uri = album['uri']
           sp_album = sp.album(album_uri)
-          _create_or_get_album(sp_album['name'], sp_album['release_date'], constants.SPOTIFY, sp_album['id'], artist_id)
-          # release_date = get_datetime(spotify_album['release_date'])
-          # if acceptable_age_threshold <= release_date:
-          #   last_fm_counter += 1
-          #   data.append((artist_name.item.name,
-          #                html.escape(artist_name.item.get_bio_summary()).replace('\n', '').replace('|', ''),
-          #                spotify_album['name'],
-          #                release_date.strftime(
-          #                    "%Y-%m-%d")))
-          #   # todo don't call this func, use a signal - something like track_discovered.send
-          #   add_to_pl(token, username, spotify_album, pl['id'])
+
+          release_date = get_datetime(sp_album['release_date'])
+          album_id = _create_or_get_album(sp_album['name'], release_date, constants.SPOTIFY, sp_album['id'], artist_id)
+
+          _add_album_to_request(request_id, album_id, release_date, )
     except IndexError:
+      # this artist isn't in spotify but is in last fm
       pass
     except:
       logger.exception('discover music for %s. similar: %s', artist_name, artist_name)
@@ -79,3 +77,9 @@ def _create_or_get_album(name, release_date, provider_type, external_id, artist_
     artist_id = get_unique_artist_id(provider_type, external_id)
 
   return artist_id
+
+
+def _add_album_to_request(request_id, album_id, release_date):
+  add_album = AddAlbumToRequest(album_id, release_date)
+  send_command(request_id, add_album)
+  return album_id

@@ -1,9 +1,17 @@
-from src.domain.request.events import SmartViewCreated1, SmartViewNameChanged1, SmartViewQueryChanged1, \
-  RequestSubmitted1
+from dateutil.relativedelta import relativedelta
+from django.utils import timezone
+
+from src.domain.request.events import RequestSubmitted1, AlbumAdded1
 from src.libs.common_domain.aggregate_base import AggregateBase
+
+acceptable_age_threshold = timezone.now() - relativedelta(months=500)
 
 
 class Request(AggregateBase):
+  def __init__(self):
+    super().__init__()
+    self.albums = []
+
   @classmethod
   def submit(cls, id, artists):
     ret_val = cls()
@@ -17,9 +25,16 @@ class Request(AggregateBase):
 
     return ret_val
 
+  def add_album(self, album_id, release_date):
+    if acceptable_age_threshold <= release_date:
+      self._raise_event(AlbumAdded1(album_id))
+
   def _handle_submitted_1_event(self, event):
     self.id = event.id
     self.artists = event.artists
+
+  def _handle_album_added_1_event(self, event):
+    self.albums.append(event.album_id)
 
   def __str__(self):
     class_name = self.__class__.__name__

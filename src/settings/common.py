@@ -142,6 +142,7 @@ THIRD_PARTY_APPS = (
 LOCAL_APPS = (
   # DOMAIN
   'src.domain.artist',
+  'src.domain.request',
 
   # APPS
   'src.apps.music_discovery',

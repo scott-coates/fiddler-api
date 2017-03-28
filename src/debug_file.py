@@ -1,5 +1,8 @@
 import django
 
+from src.domain.request.commands import SubmitRequest
+from src.libs.common_domain.dispatcher import send_command
+
 django.setup()
 
 # region bootstrap interact
@@ -15,7 +18,7 @@ make war
 
 artists = list(filter(bool, artists.split('\n')))
 
-# send_command(-1, SubmitRequest(request_id, artists))
+send_command(-1, SubmitRequest(request_id, artists))
 
 # endregion
 

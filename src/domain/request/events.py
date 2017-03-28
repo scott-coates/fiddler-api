@@ -10,3 +10,12 @@ class RequestSubmitted1(DomainEvent):
   @initializer
   def __init__(self, id, artists):
     super().__init__()
+
+
+class AlbumAdded1(DomainEvent):
+  event_func_name = 'album_added_1'
+  event_signal = EventSignal()
+
+  @initializer
+  def __init__(self, album_id):
+    super().__init__()
