@@ -1,7 +1,10 @@
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
-from src.domain.request.events import RequestSubmitted1, AlbumAddedToRequest1
+from src.apps.music_discovery.service import create_playlist
+from src.domain.common import constants
+from src.domain.request.events import RequestSubmitted1, AlbumAddedToRequest1, PlaylistCreatedForRequest
+from src.domain.request.value_objects import SpotifyPlaylist
 from src.libs.common_domain.aggregate_base import AggregateBase
 
 acceptable_age_threshold = timezone.now() - relativedelta(months=500)
@@ -11,6 +14,7 @@ class Request(AggregateBase):
   def __init__(self):
     super().__init__()
     self.albums = []
+    self.playlist = None
 
   @classmethod
   def submit(cls, id, artists):
@@ -22,6 +26,10 @@ class Request(AggregateBase):
       raise TypeError("artists is required")
 
     ret_val._raise_event(RequestSubmitted1(id, artists))
+
+    playlist = create_playlist(id)
+
+    ret_val._raise_event(PlaylistCreatedForRequest(playlist['name'], constants.SPOTIFY, playlist['id']))
 
     return ret_val
 
@@ -35,6 +43,9 @@ class Request(AggregateBase):
 
   def _handle_album_added_1_event(self, event):
     self.albums.append(event.album_id)
+
+  def _handle_playlist_created_1_event(self, event):
+    self.playlist = SpotifyPlaylist(event.data['external_id'])
 
   def __str__(self):
     class_name = self.__class__.__name__

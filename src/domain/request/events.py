@@ -12,6 +12,15 @@ class RequestSubmitted1(DomainEvent):
     super().__init__()
 
 
+class PlaylistCreatedForRequest(DomainEvent):
+  event_func_name = 'playlist_created_1'
+  event_signal = EventSignal()
+
+  @initializer
+  def __init__(self, name, provider_type, external_id):
+    super().__init__()
+
+
 class AlbumAddedToRequest1(DomainEvent):
   event_func_name = 'album_added_1'
   event_signal = EventSignal()

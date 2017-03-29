@@ -15,10 +15,17 @@ from src.libs.common_domain.dispatcher import send_command
 from src.libs.datetime_utils.datetime_parser import get_datetime
 from src.libs.python_utils.id.id_utils import generate_id
 
+import spotipy.util as util
+
 logger = logging.getLogger(__name__)
 
 client_credentials_manager = SpotifyClientCredentials(settings.SPOTIFY_CLIENT_ID, settings.SPOTIFY_CLIENT_SECRET)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+
+scope = 'playlist-modify-public'
+token = util.prompt_for_user_token(settings.SPOTIFY_PLAYLIST_USER_NAME, scope, settings.SPOTIFY_CLIENT_ID,
+                                   settings.SPOTIFY_CLIENT_SECRET, 'http://localhost/')
+user_auth_sp = spotipy.Spotify(auth=token)
 
 network = pylast.LastFMNetwork(settings.LAST_FM_API_KEY, settings.LAST_FM_API_SECRET)
 
@@ -81,6 +88,11 @@ def discover_tracks_for_album(album_id, artist_id):
 
     at = AddTracks(track_data)
     send_command(artist_id, at)
+
+
+def create_playlist(name):
+  playlist = user_auth_sp.user_playlist_create(settings.SPOTIFY_PLAYLIST_USER_NAME, name)
+  return playlist
 
 
 def _create_artist(name, provider_type, external_id):
