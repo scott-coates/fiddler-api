@@ -1,7 +1,7 @@
 from django.dispatch import receiver
 
 from src.apps.read_model.key_value.artist import tasks
-from src.domain.artist.events import AlbumAddedToArtist1
+from src.domain.artist.events import AlbumAddedToArtist1, TrackAddedToAlbum1
 from src.domain.common import constants
 
 from src.libs.common_domain.decorators import event_idempotent
@@ -10,6 +10,16 @@ from src.libs.common_domain.decorators import event_idempotent
 @event_idempotent
 @receiver(AlbumAddedToArtist1.event_signal)
 def execute_prospect_deleted_1(**kwargs):
+  event = kwargs['event']
+  album_id = event.data['id']
+  release_date = event.data['release_date']
+  provider_type = event.data['provider_type']
+  external_id = event.data['external_id']
+  tasks.set_album_external_id_task.delay(album_id, release_date, provider_type, external_id)
+
+@event_idempotent
+@receiver(TrackAddedToAlbum1.event_signal)
+def execute_track_1(**kwargs):
   event = kwargs['event']
   album_id = event.data['id']
   release_date = event.data['release_date']
