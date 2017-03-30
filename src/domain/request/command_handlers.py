@@ -37,7 +37,6 @@ def refresh_album_request(_aggregate_repository=None, **kwargs):
   album_id = command.data['album_id']
   album_data = get_album_data(album_id)
 
-
   version = ag.version
 
   ag.refresh_playlist_with_album(album_data)

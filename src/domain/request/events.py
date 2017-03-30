@@ -28,3 +28,11 @@ class AlbumAddedToRequest1(DomainEvent):
   @initializer
   def __init__(self, album_id, artist_id):
     super().__init__()
+
+class TrackAddedToPlaylist1(DomainEvent):
+  event_func_name = 'track_added_1'
+  event_signal = EventSignal()
+
+  @initializer
+  def __init__(self, track_id):
+    super().__init__()

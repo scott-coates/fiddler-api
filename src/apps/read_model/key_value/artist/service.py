@@ -78,14 +78,23 @@ def get_tracks_from_album(album_id):
   return ret_val
 
 
+def add_track_to_album(album_id, track_data):
+  kdb = get_key_value_client()
+
+  payload = json.dumps(track_data)
+  ret_val = kdb.lpush(get_read_model_name('album_data:{0}', album_id), payload)
+
+  return ret_val
+
+
 def get_album_data(album_id):
   kdb = get_key_value_client()
 
-  ret_val = kdb.get(get_read_model_name('album_tracks:{0}', album_id))
+  ret_val = kdb.lrange(get_read_model_name('album_data:{0}', album_id), 0, -1)
 
   if ret_val:
-    ret_val = ret_val.decode()
-    ret_val = json.loads(ret_val)
+    ret_val = [json.loads(x.decode()) for x in ret_val]
+    ret_val = {'id': album_id, 'tracks': ret_val}
 
   return ret_val
 
