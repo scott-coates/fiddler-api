@@ -35,6 +35,8 @@ def execute_track_1(**kwargs):
                 'external_id': external_id}
 
   tasks.add_track_to_album_task.delay(album_id, track_data)
+  tasks.set_track_external_id_task.delay(id, provider_type, external_id)
+
 
   #
   # @event_idempotent

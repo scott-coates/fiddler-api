@@ -2,11 +2,12 @@ import logging
 
 import pylast
 import spotipy
+import spotipy.util as util
 from django.conf import settings
 from spotipy.oauth2 import SpotifyClientCredentials
 
 from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_unique_album_id, \
-  get_tracks_from_album, get_album_external_id
+  get_album_external_id, get_album_data, get_track_external_id
 from src.domain.artist.commands import CreateArtist, CreateAlbum, AddTracks
 from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError
 from src.domain.common import constants
@@ -14,8 +15,6 @@ from src.domain.request.commands import AddAlbumToRequest
 from src.libs.common_domain.dispatcher import send_command
 from src.libs.datetime_utils.datetime_parser import get_datetime
 from src.libs.python_utils.id.id_utils import generate_id
-
-import spotipy.util as util
 
 logger = logging.getLogger(__name__)
 
@@ -67,8 +66,8 @@ def discover_music_for_request(request_id, root_artist_name):
 
 
 def discover_tracks_for_album(album_id, artist_id):
-  track_info = get_tracks_from_album(album_id)
-  if not track_info:
+  album_data = get_album_data(album_id)
+  if not album_data or not album_data.get('tracks'):
     external_id = get_album_external_id(album_id)['external_id']
 
     sp_album = sp.album(external_id)
@@ -93,6 +92,18 @@ def discover_tracks_for_album(album_id, artist_id):
 def create_playlist(name):
   playlist = user_auth_sp.user_playlist_create(settings.SPOTIFY_PLAYLIST_USER_NAME, name)
   return playlist
+
+
+def update_playlist_with_tracks(playlist_id, track_ids, ):
+  spotify_track_ids = []
+
+  for t in track_ids:
+    track_data = get_track_external_id(t)
+    spotify_track_ids.append(track_data['external_id'])
+
+  results = user_auth_sp.user_playlist_replace_tracks(settings.SPOTIFY_PLAYLIST_USER_NAME, playlist_id,
+                                                      spotify_track_ids)
+  return results
 
 
 def _create_artist(name, provider_type, external_id):

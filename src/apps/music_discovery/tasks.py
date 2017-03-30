@@ -119,7 +119,13 @@ def discover_music_for_request_task(request_id, artist_name):
 def discover_tracks_for_album_task(album_id, artist_id):
   return service.discover_tracks_for_album(album_id, artist_id)
 
+
 @job('high')
-def update_request_playlist_task(request_id,album_id):
+def update_request_playlist_task(request_id, album_id):
   refresh = RefreshPlaylistWithAlbum(album_id)
   dispatcher.send_command(request_id, refresh)
+
+
+@job('high')
+def update_playlist_with_tracks_task(playlist_id, track_ids, ):
+  return service.update_playlist_with_tracks(playlist_id, track_ids)

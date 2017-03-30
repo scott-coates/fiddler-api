@@ -67,13 +67,22 @@ def get_album_external_id(album_id):
   return ret_val
 
 
-def get_tracks_from_album(album_id):
+def set_track_external_id(track_id, provider_type, external_id):
+  kdb = get_key_value_client()
+  data = {'provider_type': provider_type, 'external_id': external_id}
+
+  ret_val = kdb.hmset(get_read_model_name('external_track_info:{0}', track_id), data)
+
+  return ret_val
+
+
+def get_track_external_id(track_id):
   kdb = get_key_value_client()
 
-  ret_val = kdb.get(get_read_model_name('album_tracks:{0}', album_id))
+  ret_val = kdb.hgetall(get_read_model_name('external_track_info:{0}', track_id))
 
   if ret_val:
-    ret_val = ret_val.decode()
+    ret_val = dict(map(lambda m: (m[0].decode(), m[1].decode()), ret_val.items()))
 
   return ret_val
 
@@ -90,7 +99,7 @@ def add_track_to_album(album_id, track_data):
 def get_album_data(album_id):
   kdb = get_key_value_client()
 
-  ret_val = kdb.lrange(get_read_model_name('album_data:{0}', album_id), 0, -1)
+  ret_val = kdb.lrange(get_read_model_name('album_data:{0}', album_id), 0, -1) or None
 
   if ret_val:
     ret_val = [json.loads(x.decode()) for x in ret_val]

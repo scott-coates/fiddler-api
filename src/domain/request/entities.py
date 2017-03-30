@@ -4,7 +4,7 @@ from django.utils import timezone
 from src.apps.music_discovery.service import create_playlist
 from src.domain.common import constants
 from src.domain.request.events import RequestSubmitted1, AlbumAddedToRequest1, PlaylistCreatedForRequest, \
-  TrackAddedToPlaylist1
+  PlaylistRefreshedWithTracks1
 from src.domain.request.value_objects import SpotifyPlaylist
 from src.libs.common_domain.aggregate_base import AggregateBase
 
@@ -18,19 +18,19 @@ class Request(AggregateBase):
     self.playlist = None
 
   @classmethod
-  def submit(cls, id, artists):
+  def submit(cls, id, artist_names):
     ret_val = cls()
     if not id:
       raise TypeError("id is required")
 
-    if not artists or not all(artists):
+    if not artist_names or not all(artist_names):
       raise TypeError("artists is required")
 
-    ret_val._raise_event(RequestSubmitted1(id, artists))
+    ret_val._raise_event(RequestSubmitted1(id, artist_names))
 
     # todo have this be in its own event handler
-    # playlist = create_playlist(id)
-    # ret_val._raise_event(PlaylistCreatedForRequest(playlist['name'], constants.SPOTIFY, playlist['id']))
+    playlist = create_playlist(id)
+    ret_val._raise_event(PlaylistCreatedForRequest(playlist['name'], constants.SPOTIFY, playlist['id']))
 
     return ret_val
 
@@ -44,26 +44,25 @@ class Request(AggregateBase):
     # artist data
     # what else - i'll need artist info
     # i'll need track info
-    current_tracks = self.playlist.tracks
+    current_tracks = self.playlist.track_ids
 
     album_id = album['id']
 
-    for track in album['tracks']:
-      self._raise_event(TrackAddedToPlaylist1(track['id']))
+    track_ids = [t['id'] for t in album['tracks']]
+    self._raise_event(PlaylistRefreshedWithTracks1(self.playlist.provider_type, self.playlist.external_id, track_ids))
 
   def _handle_submitted_1_event(self, event):
     self.id = event.id
-    self.artists = event.artists
+    self.artists_names = event.data['artist_names']
 
   def _handle_album_added_1_event(self, event):
     self.albums.append(event.album_id)
 
   def _handle_playlist_created_1_event(self, event):
-    self.playlist = SpotifyPlaylist(event.data['external_id'])
+    self.playlist = SpotifyPlaylist(event.data['provider_type'], event.data['external_id'])
 
-  def _handle_track_added_1_event(self, event):
-    tracks = self.playlist.tracks
-    all_tracks = [event.data['track']]
+  def _handle_playlist_refreshed_1_event(self, event):
+    self.playlist = SpotifyPlaylist(self.playlist.provider_type, self.playlist.external_id, event.data['track_ids'])
 
   def __str__(self):
     class_name = self.__class__.__name__

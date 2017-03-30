@@ -13,7 +13,7 @@ request_id = generate_id()
 
 
 artists = """
-make war
+MakeWar
 """
 
 artists = list(filter(bool, artists.split('\n')))

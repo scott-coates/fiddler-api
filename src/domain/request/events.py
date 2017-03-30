@@ -8,7 +8,7 @@ class RequestSubmitted1(DomainEvent):
   event_signal = EventSignal()
 
   @initializer
-  def __init__(self, id, artists):
+  def __init__(self, id, artist_names):
     super().__init__()
 
 
@@ -29,10 +29,11 @@ class AlbumAddedToRequest1(DomainEvent):
   def __init__(self, album_id, artist_id):
     super().__init__()
 
-class TrackAddedToPlaylist1(DomainEvent):
-  event_func_name = 'track_added_1'
+
+class PlaylistRefreshedWithTracks1(DomainEvent):
+  event_func_name = 'playlist_refreshed_1'
   event_signal = EventSignal()
 
   @initializer
-  def __init__(self, track_id):
+  def __init__(self, provider_type, external_id, track_ids):
     super().__init__()

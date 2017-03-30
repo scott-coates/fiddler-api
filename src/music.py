@@ -67,7 +67,7 @@ def add_rel_artist_to_playlist(token,username, artist_name, playlist_name):
 def add_to_pl(token, username, spotify_album, playlist_id):
   sp = spotipy.Spotify(auth=token)
 
-  results = sp.user_playlist_add_tracks(username,playlist_id, [t['id'] for t in spotify_album['tracks']['items']])
+  results = sp.user_playlist_add_tracks(username, playlist_id, [t['id'] for t in spotify_album['tracks']['items']])
 
   return results
 
