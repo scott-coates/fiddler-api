@@ -25,20 +25,20 @@ class Artist(AggregateBase):
     return ret_val
 
   def add_album(self, **kwargs):
-    album_id = kwargs['id']
+    external_id = kwargs['external_id']
 
     try:
-      self._get_album_by_id(album_id)
+      album = self._get_album_by_external_id(external_id)
     except:
       self._raise_event(AlbumAddedToArtist1(**kwargs))
     else:
       raise DuplicateAlbumError()
 
   def add_track(self, **kwargs):
-    track_id = kwargs['id']
+    external_id = kwargs['external_id']
 
     try:
-      self._get_track_by_id(track_id)
+      self._get_track_by_external_id(external_id)
     except:
       self._raise_event(TrackAddedToAlbum1(**kwargs))
     else:
@@ -49,10 +49,22 @@ class Artist(AggregateBase):
 
     return album
 
+  def _get_album_by_external_id(self, external_id):
+    album = next(album for album in self._albums if album.external_id == external_id)
+
+    return album
+
   def _get_track_by_id(self, track_id):
     albums = self._albums
     tracks = chain.from_iterable(p._tracks for p in albums)
     track = next(track for track in tracks if track.id == track_id)
+
+    return track
+
+  def _get_track_by_external_id(self, external_id):
+    albums = self._albums
+    tracks = chain.from_iterable(p._tracks for p in albums)
+    track = next(track for track in tracks if track.external_id == external_id)
 
     return track
 
@@ -61,18 +73,18 @@ class Artist(AggregateBase):
     self.name = event.name
 
   def _handle_album_added_1_event(self, event):
-    self._albums.append(Album(event.id, event.name, self.id))
+    self._albums.append(Album(event.id, event.name, event.external_id, self.id))
 
   def _handle_track_added_1_event(self, event):
     album = self._get_album_by_id(event.album_id)
-    album.add_track(event.id, event.name)
+    album.add_track(event.id, event.name, event.external_id)
 
   def __str__(self):
     return 'Artist {id}: {name}'.format(id=self.id, name=self.name)
 
 
 class Album:
-  def __init__(self, id, name, artist_id):
+  def __init__(self, id, name, external_id, artist_id):
     if not id:
       raise TypeError("id is required")
 
@@ -84,20 +96,21 @@ class Album:
 
     self.id = id
     self.name = name
+    self.external_id = external_id
 
     self._tracks = []
 
     self.artist_id = artist_id
 
-  def add_track(self, id, name):
-    self._tracks.append(Track(id, name, self.id))
+  def add_track(self, id, name, external_id):
+    self._tracks.append(Track(id, name, external_id, self.id))
 
   def __str__(self):
     return 'Album {id}: {name}'.format(id=self.id, score=self.name)
 
 
 class Track:
-  def __init__(self, id, name, album_id):
+  def __init__(self, id, name, external_id, album_id):
     if not id:
       raise TypeError("id is required")
 
@@ -109,6 +122,7 @@ class Track:
 
     self.id = id
     self.name = name
+    self.external_id = external_id
 
     self.album_id = album_id
 

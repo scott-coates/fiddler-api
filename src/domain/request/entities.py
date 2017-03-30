@@ -49,6 +49,9 @@ class Request(AggregateBase):
     album_id = album['id']
 
     track_ids = [t['id'] for t in album['tracks']]
+
+    track_ids.extend(self.playlist.track_ids)
+
     self._raise_event(PlaylistRefreshedWithTracks1(self.playlist.provider_type, self.playlist.external_id, track_ids))
 
   def _handle_submitted_1_event(self, event):

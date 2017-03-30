@@ -67,7 +67,7 @@ def discover_music_for_request(request_id, root_artist_name):
 
 def discover_tracks_for_album(album_id, artist_id):
   album_data = get_album_data(album_id)
-  if not album_data or not album_data.get('tracks'):
+  if not (album_data and album_data.get('tracks')):
     external_id = get_album_external_id(album_id)['external_id']
 
     sp_album = sp.album(external_id)
