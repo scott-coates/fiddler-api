@@ -7,8 +7,10 @@ from src.domain.request.events import RequestSubmitted1, AlbumAddedToRequest1, P
   PlaylistRefreshedWithTracks1
 from src.domain.request.value_objects import SpotifyPlaylist
 from src.libs.common_domain.aggregate_base import AggregateBase
+from numpy.random import choice
+import random
 
-acceptable_age_threshold = timezone.now() - relativedelta(months=500)
+acceptable_age_threshold = timezone.now() - relativedelta(months=18)
 
 
 class Request(AggregateBase):
@@ -49,6 +51,12 @@ class Request(AggregateBase):
     album_id = album['id']
 
     track_ids = [t['id'] for t in album['tracks']]
+    probability = [t['features']['energy'] for t in album['tracks']]
+    sum_probability = sum(probability)
+    probability = [p / sum_probability for p in probability]
+    track_count = random.randint(0, 2)
+
+    track_ids = list(choice(track_ids, track_count, p=probability))
 
     track_ids.extend(self.playlist.track_ids)
 
