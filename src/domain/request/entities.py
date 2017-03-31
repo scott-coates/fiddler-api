@@ -57,10 +57,11 @@ class Request(AggregateBase):
 
     track_ids = [t['id'] for t in album['tracks']]
 
-    probability = [t['features']['energy'] for t in album['tracks']]
+    probability = [t['features']['energy'] if t['features'] else .5 for t in album['tracks']]
     sum_probability = sum(probability)
     probability = [p / sum_probability for p in probability]
-    track_count = random.randint(0, 2)
+
+    track_count = choice([0, 1, 2], p=[0.75, 0.2, 0.05])
 
     # todo use python 3.6 built-in choices func
     track_ids = list(set(choice(track_ids, track_count, p=probability)))
