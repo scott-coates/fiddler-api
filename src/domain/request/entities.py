@@ -16,7 +16,7 @@ acceptable_age_threshold = timezone.now() - relativedelta(months=18)
 class Request(AggregateBase):
   def __init__(self):
     super().__init__()
-    self.albums = []
+    self._albums = []
     self.playlist = None
 
   @classmethod
@@ -41,11 +41,12 @@ class Request(AggregateBase):
     assert release_date
     assert artist_id
 
-    if acceptable_age_threshold <= release_date:
-      self._raise_event(AlbumAddedToRequest1(album_id, artist_id))
+    if album_id not in self._albums:
+      # it's possible other request artists triggered this album to be processed already.
+      if acceptable_age_threshold <= release_date:
+        self._raise_event(AlbumAddedToRequest1(album_id, artist_id))
 
   def refresh_playlist_with_album(self, album):
-
     # i'm gonna need album data
     # artist data
     # what else - i'll need artist info
@@ -55,24 +56,26 @@ class Request(AggregateBase):
     album_id = album['id']
 
     track_ids = [t['id'] for t in album['tracks']]
+
     probability = [t['features']['energy'] for t in album['tracks']]
     sum_probability = sum(probability)
     probability = [p / sum_probability for p in probability]
     track_count = random.randint(0, 2)
 
     # todo use python 3.6 built-in choices func
-    track_ids = list(choice(track_ids, track_count, p=probability))
+    track_ids = list(set(choice(track_ids, track_count, p=probability)))
 
-    track_ids.extend(self.playlist.track_ids)
-
-    self._raise_event(PlaylistRefreshedWithTracks1(self.playlist.provider_type, self.playlist.external_id, track_ids))
+    if track_ids:
+      track_ids.extend(self.playlist.track_ids)
+      assert len(set(track_ids)) == len(track_ids), 'track_ids exist already: %s' % track_ids
+      self._raise_event(PlaylistRefreshedWithTracks1(self.playlist.provider_type, self.playlist.external_id, track_ids))
 
   def _handle_submitted_1_event(self, event):
     self.id = event.id
     self.artists_names = event.data['artist_names']
 
   def _handle_album_added_1_event(self, event):
-    self.albums.append(event.album_id)
+    self._albums.append(event.album_id)
 
   def _handle_playlist_created_1_event(self, event):
     self.playlist = SpotifyPlaylist(event.data['provider_type'], event.data['external_id'])

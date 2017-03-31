@@ -14,7 +14,15 @@ request_id = generate_id()
 
 artists = """
 MakeWar
+Cival War Rust
+menzingers
 """
+
+# artists = """
+# Against Me!
+# Pussy Riot
+# Saul Williams
+# """
 
 artists = list(filter(bool, artists.split('\n')))
 
