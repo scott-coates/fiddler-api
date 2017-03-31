@@ -42,10 +42,16 @@ def discover_music_for_request(request_id, root_artist_name):
   for artist_name in all_artists_names:
     try:
 
-      artist = sp.search(q='artist:"{0}"'.format(artist_name), type='artist')['artists']['items'][0]
-      artist_id = _create_artist(artist['name'], constants.SPOTIFY, artist['id'])
+      sp_artists = sp.search(q='artist:"{0}"'.format(artist_name), type='artist')['artists']['items']
+      # todo fuzzy logic? test how many misses we get
+      artist = next(sp_artist for sp_artist in sp_artists if sp_artist['name'].lower() == artist_name.lower())
 
-      albums = sp.search(q='artist:"{0}"'.format(artist_name), limit=50, type='album')['albums']['items']
+      assert artist['name'].lower() == artist_name.lower()
+
+      external_artist_id = artist['id']
+      artist_id = _create_artist(artist['name'], constants.SPOTIFY, external_artist_id)
+
+      albums = sp.artist_albums(external_artist_id)['items']
 
       for album in albums:
         album_id = get_album_id(constants.SPOTIFY, album['id'])
@@ -60,7 +66,7 @@ def discover_music_for_request(request_id, root_artist_name):
           release_date = get_datetime(get_album_external_id(album_id)['release_date'])
 
         _add_album_to_request(request_id, album_id, release_date, artist_id)
-    except IndexError:
+    except (IndexError, StopIteration):
       # this artist isn't in spotify but is in last fm
       pass
     except:
