@@ -55,7 +55,7 @@ def set_album_id(album_id, provider_type, external_id):
 
 def set_album_external_id(album_id, release_date, provider_type, external_id):
   kdb = get_key_value_client()
-  data = {'release_date,': release_date, 'provider_type': provider_type, 'external_id': external_id}
+  data = {'release_date': release_date, 'provider_type': provider_type, 'external_id': external_id}
 
   ret_val = kdb.hmset(get_read_model_name('album_external_info:{0}', album_id), data)
 

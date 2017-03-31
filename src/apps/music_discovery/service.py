@@ -56,7 +56,7 @@ def discover_music_for_request(request_id, root_artist_name):
           release_date = get_datetime(sp_album['release_date'])
           album_id = _create_album(sp_album['name'], release_date, constants.SPOTIFY, sp_album['id'], artist_id)
         else:
-          release_date = get_album_external_id(album_id)['release_date']
+          release_date = get_datetime(get_album_external_id(album_id)['release_date'])
 
         _add_album_to_request(request_id, album_id, release_date, artist_id)
     except IndexError:
