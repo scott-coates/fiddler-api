@@ -33,6 +33,11 @@ def set_album_external_id_task(album_id, release_date, provider_type, external_i
 
 
 @job('high')
+def set_album_id_task(album_id, provider_type, external_id):
+  return service.set_album_id(album_id, provider_type, external_id)
+
+
+@job('high')
 def add_track_to_album_task(album_id, track_data):
   return service.add_track_to_album(album_id, track_data)
 
@@ -40,4 +45,3 @@ def add_track_to_album_task(album_id, track_data):
 @job('high')
 def set_track_external_id_task(track_id, provider_type, external_id):
   return service.set_track_external_id(track_id, provider_type, external_id)
-

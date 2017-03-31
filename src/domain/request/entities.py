@@ -37,6 +37,10 @@ class Request(AggregateBase):
     return ret_val
 
   def add_album(self, album_id, release_date, artist_id):
+    assert album_id
+    assert release_date
+    assert artist_id
+
     if acceptable_age_threshold <= release_date:
       self._raise_event(AlbumAddedToRequest1(album_id, artist_id))
 

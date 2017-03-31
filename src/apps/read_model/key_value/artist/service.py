@@ -1,15 +1,13 @@
 import json
 
 from src.apps.read_model.key_value.common import get_read_model_name
-from src.domain.common import constants
 from src.libs.key_value_utils.key_value_provider import get_key_value_client
-from src.libs.key_value_utils.service import push_latest
 
 
 def add_unique_artist_id(artist_id, provider_type, external_id):
   kdb = get_key_value_client()
 
-  ret_val = kdb.setnx(get_read_model_name('external_artist_id:{0}:{1}', provider_type, external_id), artist_id)
+  ret_val = kdb.setnx(get_read_model_name('artist_external_id:{0}:{1}', provider_type, external_id), artist_id)
 
   return ret_val
 
@@ -17,7 +15,7 @@ def add_unique_artist_id(artist_id, provider_type, external_id):
 def clear_unique_artist_id(provider_type, external_id):
   kdb = get_key_value_client()
 
-  ret_val = kdb.delete(get_read_model_name('external_artist_id:{0}:{1}', provider_type, external_id))
+  ret_val = kdb.delete(get_read_model_name('artist_external_id:{0}:{1}', provider_type, external_id))
 
   if ret_val:
     ret_val = ret_val.decode()
@@ -28,7 +26,7 @@ def clear_unique_artist_id(provider_type, external_id):
 def get_unique_artist_id(provider_type, external_id):
   kdb = get_key_value_client()
 
-  ret_val = kdb.get(get_read_model_name('external_artist_id:{0}:{1}', provider_type, external_id))
+  ret_val = kdb.get(get_read_model_name('artist_external_id:{0}:{1}', provider_type, external_id))
 
   if ret_val:
     ret_val = ret_val.decode()
@@ -36,13 +34,21 @@ def get_unique_artist_id(provider_type, external_id):
   return ret_val
 
 
-def get_unique_album_id(provider_type, external_id):
+def get_album_id(provider_type, external_id):
   kdb = get_key_value_client()
 
-  ret_val = kdb.get(get_read_model_name('external_album_id:{0}:{1}', provider_type, external_id))
+  ret_val = kdb.get(get_read_model_name('album_external_id:{0}:{1}', provider_type, external_id))
 
   if ret_val:
     ret_val = ret_val.decode()
+
+  return ret_val
+
+
+def set_album_id(album_id, provider_type, external_id):
+  kdb = get_key_value_client()
+
+  ret_val = kdb.setnx(get_read_model_name('album_external_id:{0}:{1}', provider_type, external_id), album_id)
 
   return ret_val
 
@@ -51,7 +57,7 @@ def set_album_external_id(album_id, release_date, provider_type, external_id):
   kdb = get_key_value_client()
   data = {'release_date,': release_date, 'provider_type': provider_type, 'external_id': external_id}
 
-  ret_val = kdb.hmset(get_read_model_name('external_album_info:{0}', album_id), data)
+  ret_val = kdb.hmset(get_read_model_name('album_external_info:{0}', album_id), data)
 
   return ret_val
 
@@ -59,7 +65,7 @@ def set_album_external_id(album_id, release_date, provider_type, external_id):
 def get_album_external_id(album_id):
   kdb = get_key_value_client()
 
-  ret_val = kdb.hgetall(get_read_model_name('external_album_info:{0}', album_id))
+  ret_val = kdb.hgetall(get_read_model_name('album_external_info:{0}', album_id))
 
   if ret_val:
     ret_val = dict(map(lambda m: (m[0].decode(), m[1].decode()), ret_val.items()))
@@ -71,7 +77,7 @@ def set_track_external_id(track_id, provider_type, external_id):
   kdb = get_key_value_client()
   data = {'provider_type': provider_type, 'external_id': external_id}
 
-  ret_val = kdb.hmset(get_read_model_name('external_track_info:{0}', track_id), data)
+  ret_val = kdb.hmset(get_read_model_name('track_external_info:{0}', track_id), data)
 
   return ret_val
 
@@ -79,7 +85,7 @@ def set_track_external_id(track_id, provider_type, external_id):
 def get_track_external_id(track_id):
   kdb = get_key_value_client()
 
-  ret_val = kdb.hgetall(get_read_model_name('external_track_info:{0}', track_id))
+  ret_val = kdb.hgetall(get_read_model_name('track_external_info:{0}', track_id))
 
   if ret_val:
     ret_val = dict(map(lambda m: (m[0].decode(), m[1].decode()), ret_val.items()))
@@ -89,9 +95,17 @@ def get_track_external_id(track_id):
 
 def add_track_to_album(album_id, track_data):
   kdb = get_key_value_client()
+  ret_val = None
 
-  payload = json.dumps(track_data)
-  ret_val = kdb.lpush(get_read_model_name('album_data:{0}', album_id), payload)
+  existing_tracks = list(map(lambda m: m.decode(), kdb.smembers(get_read_model_name('album_tracks:{0}', album_id))))
+
+  track_id = track_data['id']
+
+  if track_id not in existing_tracks:
+    payload = json.dumps(track_data)
+    ret_val = kdb.lpush(get_read_model_name('album_data:{0}', album_id), payload)
+
+    kdb.sadd(get_read_model_name('album_tracks:{0}', album_id), track_id)
 
   return ret_val
 

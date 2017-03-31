@@ -6,8 +6,9 @@ import spotipy.util as util
 from django.conf import settings
 from spotipy.oauth2 import SpotifyClientCredentials
 
-from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_unique_album_id, \
-  get_album_external_id, get_album_data, get_track_external_id
+from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_external_id, get_album_data, \
+  get_track_external_id, \
+  get_album_id
 from src.domain.artist.commands import CreateArtist, CreateAlbum, AddTracks
 from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError
 from src.domain.common import constants
@@ -46,7 +47,7 @@ def discover_music_for_request(request_id, root_artist_name):
       albums = sp.search(q='artist:"{0}"'.format(artist_name), limit=50, type='album')['albums']['items']
 
       for album in albums:
-        album_id = get_unique_album_id(constants.SPOTIFY, album['id'])
+        album_id = get_album_id(constants.SPOTIFY, album['id'])
 
         if not album_id:
           album_uri = album['uri']
@@ -124,7 +125,7 @@ def _create_album(name, release_date, provider_type, external_id, artist_id):
     ca = CreateAlbum(album_id, name, release_date, provider_type, external_id)
     send_command(artist_id, ca)
   except DuplicateAlbumError:
-    album_id = get_unique_album_id(provider_type, external_id)
+    album_id = get_album_id(provider_type, external_id)
 
   return album_id
 
