@@ -1,4 +1,5 @@
 import logging
+import random
 
 import pylast
 import spotipy
@@ -33,7 +34,7 @@ network = pylast.LastFMNetwork(settings.LAST_FM_API_KEY, settings.LAST_FM_API_SE
 def discover_music_for_request(request_id, root_artist_name):
   lfm_artist = network.get_artist(root_artist_name)
 
-  similar_artists = lfm_artist.get_similar(2)
+  similar_artists = lfm_artist.get_similar(20)
 
   similar_artist_names = [a.item.name for a in similar_artists]
   all_artists_names = [lfm_artist.get_name()] + similar_artist_names
@@ -101,6 +102,7 @@ def update_playlist_with_tracks(playlist_id, track_ids, ):
   for t in track_ids:
     track_data = get_track_external_id(t)
     spotify_track_ids.append(track_data['external_id'])
+    spotify_track_ids = random.sample(spotify_track_ids, min(100, len(spotify_track_ids)))
 
   results = user_auth_sp.user_playlist_replace_tracks(settings.SPOTIFY_PLAYLIST_USER_NAME, playlist_id,
                                                       spotify_track_ids)
