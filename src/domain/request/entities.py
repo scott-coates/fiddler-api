@@ -56,6 +56,7 @@ class Request(AggregateBase):
     probability = [p / sum_probability for p in probability]
     track_count = random.randint(0, 2)
 
+    # todo use python 3.6 built-in choices func
     track_ids = list(choice(track_ids, track_count, p=probability))
 
     track_ids.extend(self.playlist.track_ids)
