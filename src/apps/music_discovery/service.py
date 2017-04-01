@@ -35,7 +35,7 @@ def discover_music_for_request(request_id, root_artist_name):
   lfm_artist = network.get_artist(root_artist_name)
 
   # similar_artists = lfm_artist.get_similar(20)
-  similar_artists = lfm_artist.get_similar(50)
+  similar_artists = lfm_artist.get_similar(100)
 
   similar_artist_names = [a.item.name for a in similar_artists]
   all_artists_names = [lfm_artist.get_name()] + similar_artist_names

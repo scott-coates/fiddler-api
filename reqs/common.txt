@@ -5,6 +5,7 @@ django-redis==4.4.3
 redis==2.10.5
 rq==0.6.0
 rq-scheduler==0.6.1
+-e git://github.com/lamflam/rq-scheduler-dashboard.git@e541eed9e660074a97a438adc85fdd523ff25756#egg=rq_scheduler_dashboard-master
 django-rq==0.9.5
 jsonfield==1.0.3
 requests==2.10.0

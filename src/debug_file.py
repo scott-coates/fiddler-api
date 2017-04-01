@@ -13,9 +13,7 @@ request_id = generate_id()
 
 
 artists = """
-MakeWar
-Cival War Rust
-menzingers
+tycho
 """
 
 # artists = """
