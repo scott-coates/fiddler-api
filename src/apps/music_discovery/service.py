@@ -9,7 +9,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_external_id, get_album_data, \
   get_track_external_id, \
-  get_album_id
+  get_album_id, get_external_artist_id
 from src.domain.artist.commands import CreateArtist, CreateAlbum, AddTracks
 from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError
 from src.domain.common import constants
@@ -58,9 +58,7 @@ def discover_music_for_request(request_id, root_artist_name):
         if not album_id:
           album_uri = album['uri']
           sp_album = sp.album(album_uri)
-
-          release_date = get_datetime(sp_album['release_date'])
-          album_id = _create_album(sp_album['name'], release_date, constants.SPOTIFY, sp_album['id'], artist_id)
+          album_id, release_date = create_album_from_spotify_object(artist_id, sp_album)
         else:
           release_date = get_datetime(get_album_external_id(album_id)['release_date'])
 
@@ -70,6 +68,11 @@ def discover_music_for_request(request_id, root_artist_name):
       pass
     except:
       logger.exception('discover music for %s. similar: %s', artist_name, artist_name)
+
+
+def create_album_from_spotify_object(artist_id, sp_album):
+  return _create_album(sp_album['name'], get_datetime(sp_album['release_date']), constants.SPOTIFY, sp_album['id'],
+                       artist_id)
 
 
 def create_artist_from_spotify_object(artist):
@@ -115,11 +118,6 @@ def create_playlist(name):
   return playlist
 
 
-def get_artist_top_tracks(artist_external_id):
-  tracks = sp.artist_top_tracks(artist_external_id)['tracks']
-  return tracks
-
-
 def update_playlist_with_tracks(playlist_id, track_ids, ):
   spotify_track_ids = []
 
@@ -160,3 +158,9 @@ def _add_album_to_request(request_id, album_id, release_date, artist_id):
   add_album = AddAlbumToRequest(album_id, release_date, artist_id, )
   send_command(request_id, add_album)
   return album_id
+
+
+def discover_top_tracks_for_artist(artist_id):
+  external_id = get_external_artist_id(artist_id, constants.SPOTIFY)
+  tracks = sp.artist_top_tracks(external_id)['tracks']
+  return tracks

@@ -1,10 +1,20 @@
 from django.dispatch import receiver
 
 from src.apps.read_model.key_value.artist import tasks
-from src.domain.artist.events import AlbumAddedToArtist1, TrackAddedToAlbum1
+from src.domain.artist.events import AlbumAddedToArtist1, TrackAddedToAlbum1, ArtistCreated1
 from src.domain.common import constants
 
 from src.libs.common_domain.decorators import event_idempotent
+
+
+@event_idempotent
+@receiver(ArtistCreated1.event_signal)
+def execute_artist_created_1(**kwargs):
+  event = kwargs['event']
+  artist_id = kwargs['aggregate_id']
+  provider_type = event.data['provider_type']
+  external_id = event.data['external_id']
+  tasks.add_external_artist_id_task.delay(artist_id, provider_type, external_id)
 
 
 @event_idempotent

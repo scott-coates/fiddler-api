@@ -62,12 +62,3 @@ def save_agreement_alert(agreement_id,
 def delete_agreement(agreement_id):
   get_agreement_alert(agreement_id).delete()
   get_agreement_search(agreement_id).delete()
-
-
-def discover_music_for_request(request_id, artist_name):
-  return None
-
-
-def add_artist_top_tracks(artist_id):
-  ret_val = get_artist_top_tracks(artist_id)
-  return ret_val

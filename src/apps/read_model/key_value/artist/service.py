@@ -7,7 +7,7 @@ from src.libs.key_value_utils.key_value_provider import get_key_value_client
 def add_unique_artist_id(artist_id, provider_type, external_id):
   kdb = get_key_value_client()
 
-  ret_val = kdb.setnx(get_read_model_name('artist_external_id:{0}:{1}', provider_type, external_id), artist_id)
+  ret_val = kdb.setnx(get_read_model_name('artist_unique_id:{0}:{1}', provider_type, external_id), artist_id)
 
   return ret_val
 
@@ -15,7 +15,7 @@ def add_unique_artist_id(artist_id, provider_type, external_id):
 def clear_unique_artist_id(provider_type, external_id):
   kdb = get_key_value_client()
 
-  ret_val = kdb.delete(get_read_model_name('artist_external_id:{0}:{1}', provider_type, external_id))
+  ret_val = kdb.delete(get_read_model_name('artist_unique_id:{0}:{1}', provider_type, external_id))
 
   return ret_val
 
@@ -23,7 +23,26 @@ def clear_unique_artist_id(provider_type, external_id):
 def get_unique_artist_id(provider_type, external_id):
   kdb = get_key_value_client()
 
-  ret_val = kdb.get(get_read_model_name('artist_external_id:{0}:{1}', provider_type, external_id))
+  ret_val = kdb.get(get_read_model_name('artist_unique_id:{0}:{1}', provider_type, external_id))
+
+  if ret_val:
+    ret_val = ret_val.decode()
+
+  return ret_val
+
+
+def add_external_artist_id(artist_id, provider_type, external_id):
+  kdb = get_key_value_client()
+
+  ret_val = kdb.setnx(get_read_model_name('artist_external_id:{0}:{1}', artist_id, provider_type, ), external_id)
+
+  return ret_val
+
+
+def get_external_artist_id(artist_id, provider_type):
+  kdb = get_key_value_client()
+
+  ret_val = kdb.get(get_read_model_name('artist_external_id:{0}:{1}', artist_id, provider_type))
 
   if ret_val:
     ret_val = ret_val.decode()

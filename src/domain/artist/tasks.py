@@ -40,11 +40,6 @@ def create_artist_task(_aggregate_repo=None, _dispatcher=None, **kwargs):
 
       _dispatcher.send_command(agreement_id, create_agreement)
 
-
-@job('high')
-def add_artist_top_tracks_task(artist_id):
-  return service.add_artist_top_tracks(artist_id)
-
 @job('high')
 def send_alert_for_agreement_task(agreement_id, _dispatcher=None):
   if not _dispatcher: _dispatcher = dispatcher

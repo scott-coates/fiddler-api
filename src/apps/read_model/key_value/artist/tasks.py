@@ -45,3 +45,8 @@ def add_track_to_album_task(album_id, track_data):
 @job('high')
 def set_track_external_id_task(track_id, provider_type, external_id):
   return service.set_track_external_id(track_id, provider_type, external_id)
+
+
+@job('high')
+def add_external_artist_id_task(artist_id, provider_type, external_id):
+  return service.add_external_artist_id(artist_id, provider_type, external_id)

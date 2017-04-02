@@ -9,10 +9,17 @@ def execute_assignment_batch_1(**kwargs):
   event = kwargs['event']
 
   artist_names = event.data['artist_names']
+  artist_ids = event.data['artist_ids']
   r_id = kwargs['aggregate_id']
 
   for artist_name in artist_names:
     tasks.discover_music_for_request_task.delay(r_id, artist_name)
+
+  # todo move to reequest domain
+  for a_id, a_name in zip(artist_names, artist_ids):
+    # i want to find most popular tracks for this artist
+    # store them in their aritst profile
+    tasks.discover_top_tracks_for_artist_task(a_id)
 
 
 # todo move to reequest domain

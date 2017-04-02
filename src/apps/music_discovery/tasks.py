@@ -1,8 +1,10 @@
 import logging
+from itertools import groupby
 
 from django_rq import job
 
 from src.apps.music_discovery import service
+from src.domain.agreement_type import services
 from src.domain.request.commands import RefreshPlaylistWithAlbum
 from src.libs.common_domain import dispatcher
 
@@ -129,3 +131,14 @@ def update_request_playlist_task(request_id, album_id):
 @job('high')
 def update_playlist_with_tracks_task(playlist_id, track_ids, ):
   return service.update_playlist_with_tracks(playlist_id, track_ids)
+
+
+@job('high')
+def discover_top_tracks_for_artist_task(artist_id):
+  tracks = service.discover_top_tracks_for_artist(artist_id)
+
+  albums = groupby(tracks, lambda t: t['album']['id'])
+
+  for album in albums:
+    album_id = service.create_album_from_spotify_object(artist_id, album)
+    discover_tracks_for_album_task.delay(album_id, artist_id)
