@@ -28,3 +28,12 @@ class TrackAddedToAlbum1(DomainEvent):
   @initializer
   def __init__(self, id, name, features, provider_type, external_id, album_id):
     super().__init__()
+
+
+class TopTracksAdded1(DomainEvent):
+  event_func_name = 'top_tracks_added_1'
+  event_signal = EventSignal()
+
+  @initializer
+  def __init__(self, track_ids, ):
+    super().__init__()

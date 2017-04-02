@@ -25,3 +25,11 @@ class AddTracks(DomainCommand):
   @initializer
   def __init__(self, tracks):
     pass
+
+
+class AddTopTracks(DomainCommand):
+  command_signal = CommandSignal()
+
+  @initializer
+  def __init__(self, track_ids):
+    pass

@@ -142,3 +142,11 @@ def discover_top_tracks_for_artist_task(artist_id):
   for album in albums:
     album_id = service.create_album_from_spotify_object(artist_id, album)
     discover_tracks_for_album_task.delay(album_id, artist_id)
+
+  external_track_ids = [t['id'] for t in tracks]
+  add_artist_top_tracks_task.delay(artist_id, external_track_ids)
+
+
+@job('high')
+def add_artist_top_tracks_task(artist_id, external_track_ids, ):
+  return service.add_artist_top_tracks(artist_id, external_track_ids, )

@@ -1,10 +1,10 @@
 import django
 
+django.setup()
 from src.apps.music_discovery.service import get_sp_artist_by_name, create_artist_from_spotify_object
 from src.domain.request.commands import SubmitRequest
 from src.libs.common_domain.dispatcher import send_command
 
-django.setup()
 
 # region bootstrap interact
 from src.libs.python_utils.id.id_utils import generate_id

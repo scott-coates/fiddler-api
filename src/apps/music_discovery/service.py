@@ -10,10 +10,12 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_external_id, get_album_data, \
   get_track_external_id, \
   get_album_id, get_external_artist_id
-from src.domain.artist.commands import CreateArtist, CreateAlbum, AddTracks
+from src.domain.artist.commands import CreateArtist, CreateAlbum, AddTopTracks
+from src.domain.artist.entities import Artist
 from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError
 from src.domain.common import constants
 from src.domain.request.commands import AddAlbumToRequest
+from src.libs.common_domain import aggregate_repository
 from src.libs.common_domain.dispatcher import send_command
 from src.libs.datetime_utils.datetime_parser import get_datetime
 from src.libs.python_utils.id.id_utils import generate_id
@@ -94,7 +96,7 @@ def discover_tracks_for_album(album_id, artist_id):
     sp_album = sp.album(external_id)
     track_data = _get_tracks_and_features(album_id, sp_album['tracks']['items'])
 
-    at = AddTracks(track_data)
+    at = AddTracksToAlbum(album_id, track_data)
     send_command(artist_id, at)
 
 
@@ -164,3 +166,10 @@ def discover_top_tracks_for_artist(artist_id):
   external_id = get_external_artist_id(artist_id, constants.SPOTIFY)
   tracks = sp.artist_top_tracks(external_id)['tracks']
   return tracks
+
+
+def add_artist_top_tracks(artist_id, external_track_ids):
+  ag = aggregate_repository.get(Artist, artist_id)
+  track_ids = [ag._get_track_by_external_id(t).id for t in external_track_ids]
+  at = AddTopTracks(track_ids)
+  send_command(artist_id, at)

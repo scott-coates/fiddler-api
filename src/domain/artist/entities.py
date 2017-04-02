@@ -1,8 +1,7 @@
 from itertools import chain
 
-from src.apps.music_discovery.service import get_artist_top_tracks
 from src.domain.artist.errors import DuplicateAlbumError, DuplicateTrackError
-from src.domain.artist.events import ArtistCreated1, AlbumAddedToArtist1, TrackAddedToAlbum1
+from src.domain.artist.events import ArtistCreated1, AlbumAddedToArtist1, TrackAddedToAlbum1, TopTracksAdded1
 from src.libs.common_domain.aggregate_base import AggregateBase
 
 
@@ -10,6 +9,7 @@ class Artist(AggregateBase):
   def __init__(self):
     super().__init__()
     self._albums = []
+    self._top_tracks = []
 
   @classmethod
   def from_attrs(cls, **kwargs):
@@ -29,7 +29,8 @@ class Artist(AggregateBase):
     external_id = kwargs['external_id']
 
     try:
-      album = self._get_album_by_external_id(external_id)
+      # check if album already exists
+      self._get_album_by_external_id(external_id)
     except:
       self._raise_event(AlbumAddedToArtist1(**kwargs))
     else:
@@ -39,11 +40,22 @@ class Artist(AggregateBase):
     external_id = kwargs['external_id']
 
     try:
+      # check if track already exists
       self._get_track_by_external_id(external_id)
     except:
+      self._get_album_by_id(kwargs['album_id'])
       self._raise_event(TrackAddedToAlbum1(**kwargs))
     else:
       raise DuplicateTrackError()
+
+  def add_top_tracks(self, track_ids):
+    if self._top_tracks: raise Exception('top tracks already provided.')
+
+    for t in track_ids:
+      # ensure track exists
+      self._get_track_by_id(t)
+
+    self._raise_event(TopTracksAdded1(track_ids))
 
   def _get_album_by_id(self, album_id):
     album = next(album for album in self._albums if album.id == album_id)
@@ -81,6 +93,9 @@ class Artist(AggregateBase):
   def _handle_track_added_1_event(self, event):
     album = self._get_album_by_id(event.album_id)
     album.add_track(event.id, event.name, event.external_id)
+
+  def _handle_top_tracks_added_1_event(self, event):
+    self._top_tracks = event.track_ids
 
   def __str__(self):
     return 'Artist {id}: {name}'.format(id=self.id, name=self.name)

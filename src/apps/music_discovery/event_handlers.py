@@ -19,7 +19,7 @@ def execute_assignment_batch_1(**kwargs):
   for a_id, a_name in zip(artist_names, artist_ids):
     # i want to find most popular tracks for this artist
     # store them in their aritst profile
-    tasks.discover_top_tracks_for_artist_task(a_id)
+    tasks.discover_top_tracks_for_artist_task.delay(a_id)
 
 
 # todo move to reequest domain
