@@ -41,36 +41,11 @@ def create_artist_task(_aggregate_repo=None, _dispatcher=None, **kwargs):
       _dispatcher.send_command(agreement_id, create_agreement)
 
 
-@job('default')
-def send_alerts_for_agreements_task():
-  # get list of agreements where the flag is enabled, not created, and date has passed
-  agreement_ids_with_due_outcome_alerts = (
-    service
-      .get_agreements_with_due_outcome_alert()
-      .values_list('id', flat=True)
-    # putting values_list here and not in service becuase my thinking is if the service returns a django object list
-    # then we can just return them. if you look at search_service, the service layer actually calls values_list but
-    # this layer is returning a custom object (it includes count, results, etc).
-  )
+@job('high')
+def add_artist_top_tracks_task(artist_id):
+  return service.add_artist_top_tracks(artist_id)
 
-  agreement_ids_with_due_outcome_notice_alerts = (
-    service
-      .get_agreements_with_due_outcome_notice_alert()
-      .values_list('id', flat=True)
-  )
-
-  outcome_set = set(agreement_ids_with_due_outcome_alerts)
-  outcome_notice_set = set(agreement_ids_with_due_outcome_notice_alerts)
-  ids = outcome_set.union(outcome_notice_set)
-
-  # the reason i'm doing this in one task is that i'm worried about concurrency conflicts.
-  # if we have a bunch of simultaneous tasks modifying the same instances, we could potentially overwrite bool flags
-  # which would result in multiple emails going out.
-  for ag_id in ids:
-    send_alert_for_agreement_task.delay(ag_id)
-
-
-@job('default')
+@job('high')
 def send_alert_for_agreement_task(agreement_id, _dispatcher=None):
   if not _dispatcher: _dispatcher = dispatcher
   log_message = ("Send agreement alert task for id: %s", agreement_id)

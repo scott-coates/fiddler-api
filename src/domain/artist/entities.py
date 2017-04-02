@@ -1,5 +1,6 @@
 from itertools import chain
 
+from src.apps.music_discovery.service import get_artist_top_tracks
 from src.domain.artist.errors import DuplicateAlbumError, DuplicateTrackError
 from src.domain.artist.events import ArtistCreated1, AlbumAddedToArtist1, TrackAddedToAlbum1
 from src.libs.common_domain.aggregate_base import AggregateBase

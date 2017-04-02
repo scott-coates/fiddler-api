@@ -1,22 +1,23 @@
 from django.utils import timezone
 
+from src.apps.music_discovery.service import get_artist_top_tracks
 from src.apps.read_model.relational.agreement.models import AgreementSearch, AgreementAlert
 
 
 def get_agreements_with_due_outcome_alert():
   ret_val = AgreementAlert.objects.filter(
-    outcome_alert_date__lte=timezone.now(),
-    outcome_alert_enabled=True,
-    outcome_alert_created=False
+      outcome_alert_date__lte=timezone.now(),
+      outcome_alert_enabled=True,
+      outcome_alert_created=False
   )
   return ret_val
 
 
 def get_agreements_with_due_outcome_notice_alert():
   ret_val = AgreementAlert.objects.filter(
-    outcome_notice_alert_date__lte=timezone.now(),
-    outcome_notice_alert_enabled=True,
-    outcome_notice_alert_created=False
+      outcome_notice_alert_date__lte=timezone.now(),
+      outcome_notice_alert_enabled=True,
+      outcome_notice_alert_created=False
   )
   return ret_val
 
@@ -28,9 +29,9 @@ def get_agreement_search(agreement_id):
 
 def save_agreement_search(agreement_id, user_id, name, counterparty, agreement_type_id):
   ag, _ = AgreementSearch.objects.update_or_create(
-    id=agreement_id, defaults=dict(
-      name=name, user_id=user_id, counterparty=counterparty, agreement_type_id=agreement_type_id
-    )
+      id=agreement_id, defaults=dict(
+          name=name, user_id=user_id, counterparty=counterparty, agreement_type_id=agreement_type_id
+      )
   )
   return ag
 
@@ -65,3 +66,8 @@ def delete_agreement(agreement_id):
 
 def discover_music_for_request(request_id, artist_name):
   return None
+
+
+def add_artist_top_tracks(artist_id):
+  ret_val = get_artist_top_tracks(artist_id)
+  return ret_val

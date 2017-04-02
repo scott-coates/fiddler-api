@@ -7,7 +7,7 @@ class CreateArtist(DomainCommand):
   command_signal = CommandSignal()
 
   @initializer
-  def __init__(self, id, name, provider_type, external_id):
+  def __init__(self, id, name, genres, popularity, provider_type, external_id):
     pass
 
 
@@ -17,6 +17,7 @@ class CreateAlbum(DomainCommand):
   @initializer
   def __init__(self, id, name, release_date, provider_type, external_id):
     pass
+
 
 class AddTracks(DomainCommand):
   command_signal = CommandSignal()

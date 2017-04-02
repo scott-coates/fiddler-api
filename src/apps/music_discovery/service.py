@@ -50,7 +50,8 @@ def discover_music_for_request(request_id, root_artist_name):
       assert artist['name'].lower() == artist_name.lower()
 
       external_artist_id = artist['id']
-      artist_id = _create_artist(artist['name'], constants.SPOTIFY, external_artist_id)
+      artist_id = _create_artist(artist['name'], artist['genres'], artist['popularity'], constants.SPOTIFY,
+                                 external_artist_id)
 
       albums = sp.artist_albums(external_artist_id)['items']
 
@@ -80,28 +81,35 @@ def discover_tracks_for_album(album_id, artist_id):
     external_id = get_album_external_id(album_id)['external_id']
 
     sp_album = sp.album(external_id)
-    tracks = sp_album['tracks']['items']
-    track_ids = [t['id'] for t in tracks]
-    track_features = sp.audio_features(track_ids)
-    track_data = []
-
-    for track_info, track_feature in zip(tracks, track_features):
-      track_data.append({
-        'name': track_info['name'],
-        'features': track_feature,
-        'provider_type': constants.SPOTIFY,
-        'external_id': track_info['id'],
-        'album_id': album_id,
-      })
+    track_data = _get_tracks_and_features(album_id, sp_album['tracks']['items'])
 
     at = AddTracks(track_data)
     send_command(artist_id, at)
+
+
+def _get_tracks_and_features(album_id, tracks):
+  track_ids = [t['id'] for t in tracks]
+  track_features = sp.audio_features(track_ids)
+  track_data = []
+  for track_info, track_feature in zip(tracks, track_features):
+    track_data.append({
+      'name': track_info['name'],
+      'features': track_feature,
+      'provider_type': constants.SPOTIFY,
+      'external_id': track_info['id'],
+      'album_id': album_id,
+    })
+  return track_data
 
 
 def create_playlist(name):
   playlist = user_auth_sp.user_playlist_create(settings.SPOTIFY_PLAYLIST_USER_NAME, name)
   return playlist
 
+
+def get_artist_top_tracks(artist_external_id):
+  tracks = sp.artist_top_tracks(artist_external_id)['tracks']
+  return tracks
 
 def update_playlist_with_tracks(playlist_id, track_ids, ):
   spotify_track_ids = []
@@ -116,11 +124,11 @@ def update_playlist_with_tracks(playlist_id, track_ids, ):
   return results
 
 
-def _create_artist(name, provider_type, external_id):
+def _create_artist(name, genres, popularity, provider_type, external_id):
   artist_id = generate_id()
 
   try:
-    ca = CreateArtist(artist_id, name, provider_type, external_id)
+    ca = CreateArtist(artist_id, name, genres, popularity, provider_type, external_id)
     send_command(artist_id, ca)
   except DuplicateArtistError:
     artist_id = get_unique_artist_id(provider_type, external_id)
