@@ -7,7 +7,7 @@ class SubmitRequest(DomainCommand):
   command_signal = CommandSignal()
 
   @initializer
-  def __init__(self, id, artist_names):
+  def __init__(self, id, artist_ids, artist_names):
     pass
 
 

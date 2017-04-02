@@ -8,7 +8,7 @@ class RequestSubmitted1(DomainEvent):
   event_signal = EventSignal()
 
   @initializer
-  def __init__(self, id, artist_names):
+  def __init__(self, id, artist_ids, artist_names):
     super().__init__()
 
 

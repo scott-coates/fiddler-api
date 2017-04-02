@@ -8,11 +8,12 @@ from src.domain.request.events import RequestSubmitted1, AlbumAddedToRequest1, P
 def execute_assignment_batch_1(**kwargs):
   event = kwargs['event']
 
-  artist_names = event.data['artist_names']
+  artist_ids = event.data['artist_names']
   r_id = kwargs['aggregate_id']
 
-  for artist_name in artist_names:
-    tasks.discover_music_for_request_task.delay(r_id, artist_name)
+  for artist_id in artist_ids:
+    tasks.discover_music_for_request_task.delay(r_id, artist_id)
+
 
 # todo move to reequest domain
 @receiver(AlbumAddedToRequest1.event_signal)

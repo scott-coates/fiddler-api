@@ -72,6 +72,8 @@ class Artist(AggregateBase):
   def _handle_created_1_event(self, event):
     self.id = event.id
     self.name = event.name
+    self.popularity = event.popularity
+    self.genres = event.genres
 
   def _handle_album_added_1_event(self, event):
     self._albums.append(Album(event.id, event.name, event.external_id, self.id))

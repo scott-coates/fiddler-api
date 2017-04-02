@@ -20,15 +20,15 @@ class Request(AggregateBase):
     self.playlist = None
 
   @classmethod
-  def submit(cls, id, artist_names):
+  def submit(cls, id, artist_ids, artist_names):
     ret_val = cls()
     if not id:
       raise TypeError("id is required")
 
-    if not artist_names or not all(artist_names):
+    if not artist_ids or not all(artist_ids):
       raise TypeError("artists is required")
 
-    ret_val._raise_event(RequestSubmitted1(id, artist_names))
+    ret_val._raise_event(RequestSubmitted1(id, artist_ids, artist_names))
 
     # todo have this be in its own event handler
     playlist = create_playlist(id)
@@ -73,7 +73,7 @@ class Request(AggregateBase):
 
   def _handle_submitted_1_event(self, event):
     self.id = event.id
-    self.artists_names = event.data['artist_names']
+    self.artists_ids = event.data['artist_ids']
 
   def _handle_album_added_1_event(self, event):
     self._albums.append(event.album_id)

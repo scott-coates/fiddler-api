@@ -34,8 +34,8 @@ network = pylast.LastFMNetwork(settings.LAST_FM_API_KEY, settings.LAST_FM_API_SE
 def discover_music_for_request(request_id, root_artist_name):
   lfm_artist = network.get_artist(root_artist_name)
 
-  # similar_artists = lfm_artist.get_similar(20)
-  similar_artists = lfm_artist.get_similar(100)
+  similar_artists = lfm_artist.get_similar(2)
+  # similar_artists = lfm_artist.get_similar(100)
 
   similar_artist_names = [a.item.name for a in similar_artists]
   all_artists_names = [lfm_artist.get_name()] + similar_artist_names
@@ -43,17 +43,14 @@ def discover_music_for_request(request_id, root_artist_name):
   for artist_name in all_artists_names:
     try:
 
-      sp_artists = sp.search(q='artist:"{0}"'.format(artist_name), type='artist')['artists']['items']
-      # todo fuzzy logic? test how many misses we get
-      artist = next(sp_artist for sp_artist in sp_artists if sp_artist['name'].lower() == artist_name.lower())
+      artist = get_sp_artist_by_name(artist_name)
+      if not artist: raise IndexError('artist_name: ', artist_name)
 
       assert artist['name'].lower() == artist_name.lower()
 
-      external_artist_id = artist['id']
-      artist_id = _create_artist(artist['name'], artist['genres'], artist['popularity'], constants.SPOTIFY,
-                                 external_artist_id)
+      artist_id = create_artist_from_spotify_object(artist)
 
-      albums = sp.artist_albums(external_artist_id)['items']
+      albums = sp.artist_albums(artist['id'])['items']
 
       for album in albums:
         album_id = get_album_id(constants.SPOTIFY, album['id'])
@@ -68,11 +65,22 @@ def discover_music_for_request(request_id, root_artist_name):
           release_date = get_datetime(get_album_external_id(album_id)['release_date'])
 
         _add_album_to_request(request_id, album_id, release_date, artist_id)
-    except (IndexError, StopIteration):
+    except (IndexError):
       # this artist isn't in spotify but is in last fm
       pass
     except:
       logger.exception('discover music for %s. similar: %s', artist_name, artist_name)
+
+
+def create_artist_from_spotify_object(artist):
+  return _create_artist(artist['name'], artist['genres'], artist['popularity'], constants.SPOTIFY, artist['id'])
+
+
+def get_sp_artist_by_name(artist_name):
+  sp_artists = sp.search(q='artist:"{0}"'.format(artist_name), type='artist')['artists']['items']
+  # todo fuzzy logic? test how many misses we get
+  artist = next((sp_artist for sp_artist in sp_artists if sp_artist['name'].lower() == artist_name.lower()), None)
+  return artist
 
 
 def discover_tracks_for_album(album_id, artist_id):
@@ -110,6 +118,7 @@ def create_playlist(name):
 def get_artist_top_tracks(artist_external_id):
   tracks = sp.artist_top_tracks(artist_external_id)['tracks']
   return tracks
+
 
 def update_playlist_with_tracks(playlist_id, track_ids, ):
   spotify_track_ids = []

@@ -17,9 +17,6 @@ def clear_unique_artist_id(provider_type, external_id):
 
   ret_val = kdb.delete(get_read_model_name('artist_external_id:{0}:{1}', provider_type, external_id))
 
-  if ret_val:
-    ret_val = ret_val.decode()
-
   return ret_val
 
 

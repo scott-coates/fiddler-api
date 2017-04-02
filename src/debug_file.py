@@ -1,5 +1,6 @@
 import django
 
+from src.apps.music_discovery.service import get_sp_artist_by_name, create_artist_from_spotify_object
 from src.domain.request.commands import SubmitRequest
 from src.libs.common_domain.dispatcher import send_command
 
@@ -9,8 +10,6 @@ django.setup()
 from src.libs.python_utils.id.id_utils import generate_id
 
 request_id = generate_id()
-
-
 
 artists = """
 tycho
@@ -24,7 +23,13 @@ tycho
 
 artists = list(filter(bool, artists.split('\n')))
 
-send_command(-1, SubmitRequest(request_id, artists))
+artists_info = ([], [])
+for artist_name in artists:
+  artist = get_sp_artist_by_name(artist_name)
+  artist_id = create_artist_from_spotify_object(artist)
+  artists_info[0].append(artist_id)
+  artists_info[1].append(artist['name'])
+send_command(-1, SubmitRequest(request_id, artists_info[0], artists_info[1]))
 
 # endregion
 
