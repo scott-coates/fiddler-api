@@ -1,3 +1,5 @@
+import webbrowser
+
 from django.dispatch import receiver
 
 from src.apps.music_discovery import tasks
@@ -55,3 +57,11 @@ def playlist_refreshed_1(**kwargs):
   track_ids = event.data['track_ids']
 
   tasks.update_playlist_with_tracks_task.delay(external_id, track_ids)
+
+
+@receiver(RequestSubmitted1.event_signal)
+def open_playlist(**kwargs):
+  event = kwargs['event']
+
+  spotify_url = event.data['external_url']
+  webbrowser.open(spotify_url)
