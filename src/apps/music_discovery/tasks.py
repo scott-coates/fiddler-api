@@ -142,7 +142,7 @@ def discover_top_tracks_for_artist_task(artist_id):
   for album_key, top_tracks in albums:
     album = list(top_tracks)[0]['album']
     album_uri = album['uri']
-    album_id = service.create_album_from_spotify_uri(album_uri, artist_id)
+    album_id, _ = service.create_album_from_spotify_uri(album_uri, artist_id)
     discover_tracks_for_album_task.delay(album_id, artist_id)
 
   external_track_ids = [t['id'] for t in tracks]

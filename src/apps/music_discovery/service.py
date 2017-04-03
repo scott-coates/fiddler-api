@@ -36,7 +36,7 @@ network = pylast.LastFMNetwork(settings.LAST_FM_API_KEY, settings.LAST_FM_API_SE
 def discover_music_for_request(request_id, root_artist_name):
   lfm_artist = network.get_artist(root_artist_name)
 
-  similar_artists = lfm_artist.get_similar(10)
+  similar_artists = lfm_artist.get_similar(40)
   # similar_artists = lfm_artist.get_similar(100)
 
   similar_artist_names = [a.item.name for a in similar_artists]
@@ -160,8 +160,10 @@ def _create_album(name, release_date, provider_type, external_id, artist_id):
     ca = CreateAlbum(album_id, name, release_date, provider_type, external_id)
     send_command(artist_id, ca)
   except DuplicateAlbumError:
-    album_id = get_album_id(provider_type, external_id)
+    ag = aggregate_repository.get(Artist, artist_id)
+    album_id = ag._get_album_by_external_id(external_id).id
 
+  assert album_id
   return album_id
 
 

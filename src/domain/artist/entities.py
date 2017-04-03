@@ -124,7 +124,7 @@ class Album:
     self._tracks.append(Track(id, name, external_id, self.id))
 
   def __str__(self):
-    return 'Album {id}: {name}'.format(id=self.id, score=self.name)
+    return 'Album {id}: {name}'.format(id=self.id, name=self.name)
 
 
 class Track:
