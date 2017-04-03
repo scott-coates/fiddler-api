@@ -33,7 +33,8 @@ class Request(AggregateBase):
 
     # todo have this be in its own event handler
     playlist = create_playlist(id)
-    ret_val._raise_event(PlaylistCreatedForRequest(playlist['name'], constants.SPOTIFY, playlist['id']))
+    external_url = playlist['external_urls']['spotify']
+    ret_val._raise_event(PlaylistCreatedForRequest(playlist['name'], constants.SPOTIFY, playlist['id'], external_url))
 
     return ret_val
 
@@ -47,7 +48,8 @@ class Request(AggregateBase):
       if acceptable_age_threshold <= release_date:
         self._raise_event(AlbumPromotedToRequest1(album_id, artist_id))
 
-        #todo refresh w/ artist
+        # todo refresh w/ artist
+
   def refresh_playlist_with_album(self, album):
     album_id = album['id']
 
@@ -55,7 +57,7 @@ class Request(AggregateBase):
     if album_id in self._playlist_albums: raise DuplicateAlbumInRequestError('album already in playlist:', album_id)
 
     # go through each artist
-      # get root artist info
+    # get root artist info
 
     # root_artist_top_tracks = self.root_artists_ids =
 

@@ -17,7 +17,7 @@ class PlaylistCreatedForRequest(DomainEvent):
   event_signal = EventSignal()
 
   @initializer
-  def __init__(self, name, provider_type, external_id):
+  def __init__(self, name, provider_type, external_id, external_url):
     super().__init__()
 
 

@@ -13,28 +13,28 @@ from src.libs.python_utils.id.id_utils import generate_id
 
 # region bootstrap interact
 #
-request_id = generate_id()
-
-artists = """
-red city radio
-the menzingers
-"""
-
+# request_id = generate_id()
+#
 # artists = """
-# Against Me!
-# Pussy Riot
-# Saul Williams
+# red city radio
+# the menzingers
 # """
-
-artists = list(filter(bool, artists.split('\n')))
-
-artists_info = ([], [])
-for artist_name in artists:
-  artist = get_sp_artist_by_name(artist_name)
-  artist_id = create_artist_from_spotify_object(artist)
-  artists_info[0].append(artist_id)
-  artists_info[1].append(artist['name'])
-send_command(-1, SubmitRequest(request_id, artists_info[0], artists_info[1]))
+#
+# # artists = """
+# # Against Me!
+# # Pussy Riot
+# # Saul Williams
+# # """
+#
+# artists = list(filter(bool, artists.split('\n')))
+#
+# artists_info = ([], [])
+# for artist_name in artists:
+#   artist = get_sp_artist_by_name(artist_name)
+#   artist_id = create_artist_from_spotify_object(artist)
+#   artists_info[0].append(artist_id)
+#   artists_info[1].append(artist['name'])
+# send_command(-1, SubmitRequest(request_id, artists_info[0], artists_info[1]))
 
 # endregion
 
@@ -54,16 +54,16 @@ send_command(-1, SubmitRequest(request_id, artists_info[0], artists_info[1]))
 # endregion
 
 # region playlist curation
-# request_id = generate_id()
-#
-# ag = aggregate_repository.get(Request, "qcaBYWTg")
-#
-# events = event_repository.get_events(['AlbumPromotedToRequest1']).filter(stream_id=ag.id)
-#
-# for event in events:
-#   album = get_album_data(event.event_data['album_id'])
-#
-#   ag.refresh_playlist_with_album(album)
+request_id = generate_id()
+
+ag = aggregate_repository.get(Request, "qcaBYWTg")
+
+events = event_repository.get_events(['AlbumPromotedToRequest1']).filter(stream_id=ag.id)
+
+for event in events:
+  album = get_album_data(event.event_data['album_id'])
+
+  ag.refresh_playlist_with_album(album)
 
 # _aggregate_repository.save(ag, version)
 # endregion
