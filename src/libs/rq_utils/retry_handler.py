@@ -13,7 +13,7 @@ MAX_FAILURES = settings.RQ_MAX_FAILURES
 FAILURES_KEY = 'failures'
 logger = logging.getLogger(__name__)
 
-
+# todo  - handle job dependencies - https://github.com/ui/rq-scheduler/issues/53
 # https://gist.github.com/spjwebster/6521272
 def retry_handler(job, *exc_info):
   job.meta.setdefault(FAILURES_KEY, 0)

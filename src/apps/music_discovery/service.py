@@ -10,7 +10,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_external_id, get_album_data, \
   get_track_external_id, \
   get_album_id, get_external_artist_id
-from src.domain.artist.commands import CreateArtist, PromoteAlbum, AddTopTracksToArtist, AddTracksToAlbum
+from src.domain.artist.commands import CreateArtist, AddAlbum, AddTopTracksToArtist, AddTracksToAlbum
 from src.domain.artist.entities import Artist
 from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError
 from src.domain.common import constants
@@ -112,11 +112,13 @@ def discover_tracks_for_album(album_id, artist_id):
 
 def _get_tracks_and_features(tracks):
   track_ids = [t['id'] for t in tracks]
+  sp_tracks = sp.tracks(track_ids)['tracks']
   track_features = sp.audio_features(track_ids)
   track_data = []
-  for track_info, track_feature in zip(tracks, track_features):
+  for track_info, track_feature in zip(sp_tracks, track_features):
     track_data.append({
       'name': track_info['name'],
+      'popularity': track_info['popularity'],
       'features': track_feature,
       'provider_type': constants.SPOTIFY,
       'external_id': track_info['id'],
@@ -157,7 +159,7 @@ def _create_artist(name, genres, popularity, provider_type, external_id):
 def _create_album(name, release_date, provider_type, external_id, artist_id):
   try:
     album_id = generate_id()
-    ca = PromoteAlbum(album_id, name, release_date, provider_type, external_id)
+    ca = AddAlbum(album_id, name, release_date, provider_type, external_id)
     send_command(artist_id, ca)
   except DuplicateAlbumError:
     ag = aggregate_repository.get(Artist, artist_id)

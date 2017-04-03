@@ -137,6 +137,11 @@ def get_album_data(album_id):
 
   return ret_val
 
+
+def add_top_tracks_to_artist(artist_id, track_ids):
+  track_data = []
+  return None
+
 #
 # def save_recent_prospect_discovery_network_connections_from_eo(eo_attrs, provider_type, prospect_id):
 #   ret_val = []

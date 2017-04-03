@@ -47,12 +47,18 @@ class Request(AggregateBase):
       if acceptable_age_threshold <= release_date:
         self._raise_event(AlbumPromotedToRequest1(album_id, artist_id))
 
+        #todo refresh w/ artist
   def refresh_playlist_with_album(self, album):
     album_id = album['id']
 
     if album_id not in self._promoted_albums: raise InvalidAlbumRequestError('album no promoted:', album_id)
     if album_id in self._playlist_albums: raise DuplicateAlbumInRequestError('album already in playlist:', album_id)
-    # i'm gonna need album data
+
+    # go through each artist
+      # get root artist info
+
+    # root_artist_top_tracks = self.root_artists_ids =
+
     # artist data
     # what else - i'll need artist info
     # i'll need track info
@@ -77,7 +83,7 @@ class Request(AggregateBase):
 
   def _handle_submitted_1_event(self, event):
     self.id = event.id
-    self.artists_ids = event.data['artist_ids']
+    self.root_artists_ids = event.data['artist_ids']
 
   def _handle_album_promoted_1_event(self, event):
     self._promoted_albums.append(event.album_id)

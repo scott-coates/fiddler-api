@@ -11,7 +11,7 @@ class CreateArtist(DomainCommand):
     pass
 
 
-class PromoteAlbum(DomainCommand):
+class AddAlbum(DomainCommand):
   command_signal = CommandSignal()
 
   @initializer

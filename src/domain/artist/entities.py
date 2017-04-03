@@ -1,7 +1,7 @@
 from itertools import chain
 
 from src.domain.artist.errors import DuplicateAlbumError, DuplicateTrackError, TopTracksExistError
-from src.domain.artist.events import ArtistCreated1, AlbumAddedToArtist1, TrackAddedToAlbum1, TopTracksAdded1
+from src.domain.artist.events import ArtistCreated1, AlbumAddedToArtist1, TrackAddedToAlbum1, TopTracksRefreshed1
 from src.libs.common_domain.aggregate_base import AggregateBase
 
 
@@ -51,11 +51,13 @@ class Artist(AggregateBase):
   def add_top_tracks(self, track_ids):
     if self._top_tracks: raise TopTracksExistError('top tracks already provided.')
 
+    track_data = []
     for t in track_ids:
       # ensure track exists
-      self._get_track_by_id(t)
+      track = self._get_track_by_id(t)
+      track_data.append({'track_id': t, 'album_id': track.album_id})
 
-    self._raise_event(TopTracksAdded1(track_ids))
+    self._raise_event(TopTracksRefreshed1(track_data))
 
   def _get_album_by_id(self, album_id):
     album = next(album for album in self._albums if album.id == album_id)
@@ -94,7 +96,7 @@ class Artist(AggregateBase):
     album = self._get_album_by_id(event.album_id)
     album.add_track(event.id, event.name, event.external_id)
 
-  def _handle_top_tracks_added_1_event(self, event):
+  def _handle_top_tracks_refreshed_1_event(self, event):
     self._top_tracks = event.track_ids
 
   def __str__(self):
