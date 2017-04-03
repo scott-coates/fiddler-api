@@ -13,7 +13,7 @@ request_id = generate_id()
 
 artists = """
 red city radio
-elway
+the menzingers
 """
 
 # artists = """

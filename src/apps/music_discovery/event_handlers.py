@@ -12,8 +12,8 @@ def execute_assignment_batch_1(**kwargs):
   artist_ids = event.data['artist_ids']
   r_id = kwargs['aggregate_id']
 
-  # for artist_name in artist_names:
-    # tasks.discover_music_for_request_task.delay(r_id, artist_name)
+  for artist_name in artist_names:
+    tasks.discover_music_for_request_task.delay(r_id, artist_name)
 
   # todo move to reequest domain
   for a_name, a_id in zip(artist_names, artist_ids):
