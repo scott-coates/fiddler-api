@@ -1,5 +1,6 @@
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
+from numpy.random import choice
 
 from src.apps.music_discovery.service import create_playlist
 from src.domain.common import constants
@@ -7,8 +8,6 @@ from src.domain.request.events import RequestSubmitted1, AlbumAddedToRequest1, P
   PlaylistRefreshedWithTracks1
 from src.domain.request.value_objects import SpotifyPlaylist
 from src.libs.common_domain.aggregate_base import AggregateBase
-from numpy.random import choice
-import random
 
 acceptable_age_threshold = timezone.now() - relativedelta(months=18)
 
