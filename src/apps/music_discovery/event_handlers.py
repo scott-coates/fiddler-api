@@ -3,7 +3,8 @@ import webbrowser
 from django.dispatch import receiver
 
 from src.apps.music_discovery import tasks
-from src.domain.request.events import RequestSubmitted1, PlaylistRefreshedWithTracks1, AlbumPromotedToRequest1
+from src.domain.request.events import RequestSubmitted1, PlaylistRefreshedWithTracks1, AlbumPromotedToRequest1, \
+  PlaylistCreatedForRequest
 
 
 @receiver(RequestSubmitted1.event_signal)
@@ -31,10 +32,8 @@ def add_album_1(**kwargs):
 
   album_id = event.data['album_id']
   artist_id = event.data['artist_id']
-  r_id = kwargs['aggregate_id']
 
-  discover_tracks_task = tasks.discover_tracks_for_album_task.delay(album_id, artist_id)
-  tasks.update_request_playlist_task.delay(r_id, album_id, depends_on=discover_tracks_task)
+  tasks.discover_tracks_for_album_task.delay(album_id, artist_id)
 
 
 @receiver(PlaylistRefreshedWithTracks1.event_signal)
@@ -59,7 +58,7 @@ def playlist_refreshed_1(**kwargs):
   tasks.update_playlist_with_tracks_task.delay(external_id, track_ids)
 
 
-@receiver(RequestSubmitted1.event_signal)
+@receiver(PlaylistCreatedForRequest.event_signal)
 def open_playlist(**kwargs):
   event = kwargs['event']
 

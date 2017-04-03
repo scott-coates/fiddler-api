@@ -1,4 +1,4 @@
-class InvalidAlbumRequestError(Exception):
+class InvalidRequestError(Exception):
   """Some kind of problem with charging a payment."""
   pass
 

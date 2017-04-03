@@ -4,9 +4,8 @@ from itertools import groupby
 from django_rq import job
 
 from src.apps.music_discovery import service
-from src.domain.agreement_type import services
 from src.domain.artist.errors import TopTracksExistError
-from src.domain.request.commands import RefreshPlaylistWithAlbum
+from src.domain.request.commands import RefreshPlaylist
 from src.libs.common_domain import dispatcher
 
 logger = logging.getLogger(__name__)
@@ -124,8 +123,8 @@ def discover_tracks_for_album_task(album_id, artist_id):
 
 
 @job('high')
-def update_request_playlist_task(request_id, album_id):
-  refresh = RefreshPlaylistWithAlbum(album_id)
+def update_request_playlist_task(request_id):
+  refresh = RefreshPlaylist()
   dispatcher.send_command(request_id, refresh)
 
 

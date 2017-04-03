@@ -4,7 +4,7 @@ from numpy.random import choice
 
 from src.apps.music_discovery.service import create_playlist
 from src.domain.common import constants
-from src.domain.request.errors import DuplicateAlbumInRequestError, InvalidAlbumRequestError
+from src.domain.request.errors import DuplicateAlbumInRequestError, InvalidRequestError
 from src.domain.request.events import RequestSubmitted1, PlaylistCreatedForRequest, \
   PlaylistRefreshedWithTracks1, AlbumPromotedToRequest1
 from src.domain.request.value_objects import SpotifyPlaylist
@@ -43,45 +43,49 @@ class Request(AggregateBase):
     assert release_date
     assert artist_id
 
+    promoted_albums = []
+    # it's possible other request artists triggered this album to be processed already.
     if album_id not in self._promoted_albums:
-      # it's possible other request artists triggered this album to be processed already.
+
       if acceptable_age_threshold <= release_date:
-        self._raise_event(AlbumPromotedToRequest1(album_id, artist_id))
+        promoted_albums.append((album_id, artist_id))
 
-        # todo refresh w/ artist
+    if promoted_albums:
+      promoted_albums_count = len(promoted_albums)
+      for promoted_album in promoted_albums:
+        self._raise_event(AlbumPromotedToRequest1(promoted_album[0], promoted_albums_count, promoted_album[1]))
 
-  def refresh_playlist_with_album(self, album):
-    album_id = album['id']
+  def refresh_playlist(self):
+    if self.playlist.track_ids: raise InvalidRequestError('playlist already refreshed')
 
-    if album_id not in self._promoted_albums: raise InvalidAlbumRequestError('album no promoted:', album_id)
-    if album_id in self._playlist_albums: raise DuplicateAlbumInRequestError('album already in playlist:', album_id)
-
-    # go through each artist
-    # get root artist info
-
-    # root_artist_top_tracks = self.root_artists_ids =
-
-    # artist data
-    # what else - i'll need artist info
-    # i'll need track info
-    current_tracks = self.playlist.track_ids
-
-    track_ids = [t['id'] for t in album['tracks']]
-
-    probability = [t['features']['energy'] if t['features'] else .5 for t in album['tracks']]
-    sum_probability = sum(probability)
-    probability = [p / sum_probability for p in probability]
-
-    track_count = choice([0, 1, 2], p=[0.75, 0.2, 0.05])
-
-    # todo use python 3.6 built-in choices func
-    track_ids = list(set(choice(track_ids, track_count, p=probability)))
-
-    if track_ids:
-      track_ids.extend(self.playlist.track_ids)
-      assert len(set(track_ids)) == len(track_ids), 'track_ids exist already: %s' % track_ids
-      self._raise_event(
-          PlaylistRefreshedWithTracks1(track_ids, self.playlist.provider_type, self.playlist.external_id, album_id))
+    # go through each root artist
+    root_artists = self.root_artists_ids
+    #
+    # # get root artist info
+    #
+    # # root_artist_top_tracks = self.root_artists_ids =
+    #
+    # # artist data
+    # # what else - i'll need artist info
+    # # i'll need track info
+    # current_tracks = self.playlist.track_ids
+    #
+    # track_ids = [t['id'] for t in album['tracks']]
+    #
+    # probability = [t['features']['energy'] if t['features'] else .5 for t in album['tracks']]
+    # sum_probability = sum(probability)
+    # probability = [p / sum_probability for p in probability]
+    #
+    # track_count = choice([0, 1, 2], p=[0.75, 0.2, 0.05])
+    #
+    # # todo use python 3.6 built-in choices func
+    # track_ids = list(set(choice(track_ids, track_count, p=probability)))
+    #
+    # if track_ids:
+    #   track_ids.extend(self.playlist.track_ids)
+    #   assert len(set(track_ids)) == len(track_ids), 'track_ids exist already: %s' % track_ids
+    #   self._raise_event(
+    #       PlaylistRefreshedWithTracks1(track_ids, self.playlist.provider_type, self.playlist.external_id, album_id))
 
   def _handle_submitted_1_event(self, event):
     self.id = event.id

@@ -26,7 +26,7 @@ class AlbumPromotedToRequest1(DomainEvent):
   event_signal = EventSignal()
 
   @initializer
-  def __init__(self, album_id, artist_id):
+  def __init__(self, album_id, total_albums_promoted, artist_id):
     super().__init__()
 
 

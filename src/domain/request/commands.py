@@ -18,9 +18,9 @@ class AddAlbumToRequest(DomainCommand):
   def __init__(self, album_id, release_date, artist_id):
     pass
 
-class RefreshPlaylistWithAlbum(DomainCommand):
+class RefreshPlaylist(DomainCommand):
   command_signal = CommandSignal()
 
   @initializer
-  def __init__(self, album_id):
+  def __init__(self, ):
     pass
