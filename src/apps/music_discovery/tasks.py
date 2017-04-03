@@ -5,6 +5,7 @@ from django_rq import job
 
 from src.apps.music_discovery import service
 from src.domain.agreement_type import services
+from src.domain.artist.errors import TopTracksExistError
 from src.domain.request.commands import RefreshPlaylistWithAlbum
 from src.libs.common_domain import dispatcher
 
@@ -151,4 +152,7 @@ def discover_top_tracks_for_artist_task(artist_id):
 
 @job('high')
 def add_artist_top_tracks_task(artist_id, external_track_ids, ):
-  return service.add_artist_top_tracks(artist_id, external_track_ids, )
+  try:
+    service.add_artist_top_tracks(artist_id, external_track_ids, )
+  except TopTracksExistError:
+    pass

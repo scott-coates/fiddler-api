@@ -9,3 +9,7 @@ class DuplicateAlbumError(Exception):
 class DuplicateTrackError(Exception):
   """Some kind of problem with charging a payment."""
   pass
+
+class TopTracksExistError(Exception):
+  """Some kind of problem with charging a payment."""
+  pass

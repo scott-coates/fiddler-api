@@ -1,6 +1,6 @@
 from itertools import chain
 
-from src.domain.artist.errors import DuplicateAlbumError, DuplicateTrackError
+from src.domain.artist.errors import DuplicateAlbumError, DuplicateTrackError, TopTracksExistError
 from src.domain.artist.events import ArtistCreated1, AlbumAddedToArtist1, TrackAddedToAlbum1, TopTracksAdded1
 from src.libs.common_domain.aggregate_base import AggregateBase
 
@@ -49,7 +49,7 @@ class Artist(AggregateBase):
       raise DuplicateTrackError()
 
   def add_top_tracks(self, track_ids):
-    if self._top_tracks: raise Exception('top tracks already provided.')
+    if self._top_tracks: raise TopTracksExistError('top tracks already provided.')
 
     for t in track_ids:
       # ensure track exists
