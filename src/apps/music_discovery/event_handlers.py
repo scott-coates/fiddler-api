@@ -1,7 +1,7 @@
 from django.dispatch import receiver
 
 from src.apps.music_discovery import tasks
-from src.domain.request.events import RequestSubmitted1, AlbumAddedToRequest1, PlaylistRefreshedWithTracks1
+from src.domain.request.events import RequestSubmitted1, PlaylistRefreshedWithTracks1, AlbumPromotedToRequest1
 
 
 @receiver(RequestSubmitted1.event_signal)
@@ -23,7 +23,7 @@ def execute_assignment_batch_1(**kwargs):
 
 
 # todo move to reequest domain
-@receiver(AlbumAddedToRequest1.event_signal)
+@receiver(AlbumPromotedToRequest1.event_signal)
 def add_album_1(**kwargs):
   event = kwargs['event']
 

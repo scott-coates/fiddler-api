@@ -1,7 +1,7 @@
 from django.dispatch import receiver
 
 from src.apps.read_model.key_value.artist.service import add_unique_artist_id, clear_unique_artist_id
-from src.domain.artist.commands import CreateArtist, CreateAlbum, AddTracksToAlbum, AddTopTracksToArtist
+from src.domain.artist.commands import CreateArtist, PromoteAlbum, AddTracksToAlbum, AddTopTracksToArtist
 from src.domain.artist.entities import Artist
 from src.domain.artist.errors import DuplicateArtistError
 from src.libs.common_domain import aggregate_repository
@@ -25,7 +25,7 @@ def create_agreement(_aggregate_repository=None, **kwargs):
     raise
 
 
-@receiver(CreateAlbum.command_signal)
+@receiver(PromoteAlbum.command_signal)
 def create_album(_aggregate_repository=None, **kwargs):
   if not _aggregate_repository: _aggregate_repository = aggregate_repository
   command = kwargs['command']
@@ -34,7 +34,7 @@ def create_album(_aggregate_repository=None, **kwargs):
 
   version = ag.version
 
-  ag.add_album(**command.data)
+  ag.submit_potential_album(**command.data)
 
   _aggregate_repository.save(ag, version)
 

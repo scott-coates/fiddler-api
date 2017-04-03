@@ -23,7 +23,7 @@ def add_album_request(_aggregate_repository=None, **kwargs):
 
   version = ag.version
 
-  ag.add_album(**command.data)
+  ag.submit_potential_album(**command.data)
 
   _aggregate_repository.save(ag, version)
 

@@ -21,8 +21,8 @@ class PlaylistCreatedForRequest(DomainEvent):
     super().__init__()
 
 
-class AlbumAddedToRequest1(DomainEvent):
-  event_func_name = 'album_added_1'
+class AlbumPromotedToRequest1(DomainEvent):
+  event_func_name = 'album_promoted_1'
   event_signal = EventSignal()
 
   @initializer
@@ -35,5 +35,5 @@ class PlaylistRefreshedWithTracks1(DomainEvent):
   event_signal = EventSignal()
 
   @initializer
-  def __init__(self, provider_type, external_id, track_ids):
+  def __init__(self, track_ids, provider_type, external_id, album_id):
     super().__init__()

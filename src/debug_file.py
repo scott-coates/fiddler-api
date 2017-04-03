@@ -58,7 +58,7 @@ request_id = generate_id()
 
 ag = aggregate_repository.get(Request, "qcaBYWTg")
 
-events = event_repository.get_events(['AlbumAddedToRequest1']).filter(stream_id=ag.id)
+events = event_repository.get_events(['AlbumPromotedToRequest1']).filter(stream_id=ag.id)
 
 for event in events:
   album = get_album_data(event.event_data['album_id'])
