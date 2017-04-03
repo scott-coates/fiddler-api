@@ -12,7 +12,7 @@ from src.libs.python_utils.id.id_utils import generate_id
 request_id = generate_id()
 
 artists = """
-tycho
+red city radio
 """
 
 # artists = """

@@ -10,7 +10,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_external_id, get_album_data, \
   get_track_external_id, \
   get_album_id, get_external_artist_id
-from src.domain.artist.commands import CreateArtist, CreateAlbum, AddTopTracks
+from src.domain.artist.commands import CreateArtist, CreateAlbum, AddTopTracksToArtist, AddTracksToAlbum
 from src.domain.artist.entities import Artist
 from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError
 from src.domain.common import constants
@@ -36,7 +36,7 @@ network = pylast.LastFMNetwork(settings.LAST_FM_API_KEY, settings.LAST_FM_API_SE
 def discover_music_for_request(request_id, root_artist_name):
   lfm_artist = network.get_artist(root_artist_name)
 
-  similar_artists = lfm_artist.get_similar(2)
+  similar_artists = lfm_artist.get_similar(10)
   # similar_artists = lfm_artist.get_similar(100)
 
   similar_artist_names = [a.item.name for a in similar_artists]
@@ -60,7 +60,7 @@ def discover_music_for_request(request_id, root_artist_name):
         if not album_id:
           album_uri = album['uri']
           sp_album = sp.album(album_uri)
-          album_id, release_date = create_album_from_spotify_object(artist_id, sp_album)
+          album_id, release_date = create_album_from_spotify_object(sp_album, artist_id, )
         else:
           release_date = get_datetime(get_album_external_id(album_id)['release_date'])
 
@@ -72,9 +72,19 @@ def discover_music_for_request(request_id, root_artist_name):
       logger.exception('discover music for %s. similar: %s', artist_name, artist_name)
 
 
-def create_album_from_spotify_object(artist_id, sp_album):
-  return _create_album(sp_album['name'], get_datetime(sp_album['release_date']), constants.SPOTIFY, sp_album['id'],
-                       artist_id)
+def create_album_from_spotify_object(sp_album, artist_id, ):
+  release_date = get_datetime(sp_album['release_date'])
+  album = _create_album(sp_album['name'], release_date, constants.SPOTIFY, sp_album['id'],
+                        artist_id)
+
+  return album, release_date
+
+
+def create_album_from_spotify_uri(sp_album_uri, artist_id):
+  sp_album = sp.album(sp_album_uri)
+  album_id, release_date = create_album_from_spotify_object(sp_album, artist_id, )
+
+  return album_id, release_date
 
 
 def create_artist_from_spotify_object(artist):
@@ -94,13 +104,13 @@ def discover_tracks_for_album(album_id, artist_id):
     external_id = get_album_external_id(album_id)['external_id']
 
     sp_album = sp.album(external_id)
-    track_data = _get_tracks_and_features(album_id, sp_album['tracks']['items'])
+    track_data = _get_tracks_and_features(sp_album['tracks']['items'])
 
     at = AddTracksToAlbum(album_id, track_data)
     send_command(artist_id, at)
 
 
-def _get_tracks_and_features(album_id, tracks):
+def _get_tracks_and_features(tracks):
   track_ids = [t['id'] for t in tracks]
   track_features = sp.audio_features(track_ids)
   track_data = []
@@ -110,7 +120,6 @@ def _get_tracks_and_features(album_id, tracks):
       'features': track_feature,
       'provider_type': constants.SPOTIFY,
       'external_id': track_info['id'],
-      'album_id': album_id,
     })
   return track_data
 
@@ -171,5 +180,5 @@ def discover_top_tracks_for_artist(artist_id):
 def add_artist_top_tracks(artist_id, external_track_ids):
   ag = aggregate_repository.get(Artist, artist_id)
   track_ids = [ag._get_track_by_external_id(t).id for t in external_track_ids]
-  at = AddTopTracks(track_ids)
+  at = AddTopTracksToArtist(track_ids)
   send_command(artist_id, at)

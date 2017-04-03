@@ -19,15 +19,15 @@ class CreateAlbum(DomainCommand):
     pass
 
 
-class AddTracks(DomainCommand):
+class AddTracksToAlbum(DomainCommand):
   command_signal = CommandSignal()
 
   @initializer
-  def __init__(self, tracks):
+  def __init__(self, album_id, track_data):
     pass
 
 
-class AddTopTracks(DomainCommand):
+class AddTopTracksToArtist(DomainCommand):
   command_signal = CommandSignal()
 
   @initializer

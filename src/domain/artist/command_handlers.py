@@ -1,7 +1,7 @@
 from django.dispatch import receiver
 
 from src.apps.read_model.key_value.artist.service import add_unique_artist_id, clear_unique_artist_id
-from src.domain.artist.commands import CreateArtist, CreateAlbum, AddTracks, AddTopTracks
+from src.domain.artist.commands import CreateArtist, CreateAlbum, AddTracksToAlbum, AddTopTracksToArtist
 from src.domain.artist.entities import Artist
 from src.domain.artist.errors import DuplicateArtistError
 from src.libs.common_domain import aggregate_repository
@@ -39,24 +39,25 @@ def create_album(_aggregate_repository=None, **kwargs):
   _aggregate_repository.save(ag, version)
 
 
-@receiver(AddTracks.command_signal)
+@receiver(AddTracksToAlbum.command_signal)
 def add_tracks_album(_aggregate_repository=None, **kwargs):
   if not _aggregate_repository: _aggregate_repository = aggregate_repository
   command = kwargs['command']
 
-  tracks = command.data['tracks']
+  track_data = command.data['track_data']
+  album_id = command.data['album_id']
 
   ag = _aggregate_repository.get(Artist, kwargs['aggregate_id'])
   version = ag.version
 
-  for t in tracks:
+  for t in track_data:
     track_id = generate_id()
-    ag.add_track(id=track_id, **t)
+    ag.add_track(id=track_id, album_id=album_id, **t)
 
   _aggregate_repository.save(ag, version)
 
 
-@receiver(AddTopTracks.command_signal)
+@receiver(AddTopTracksToArtist.command_signal)
 def add_top_tracks(_aggregate_repository=None, **kwargs):
   if not _aggregate_repository: _aggregate_repository = aggregate_repository
   command = kwargs['command']
