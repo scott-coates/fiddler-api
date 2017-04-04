@@ -1,8 +1,11 @@
+from operator import itemgetter
+
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from numpy.random import choice
 
 from src.apps.music_discovery.service import create_playlist
+from src.apps.read_model.key_value.artist.service import get_artist_info
 from src.domain.common import constants
 from src.domain.request.errors import DuplicateAlbumInRequestError, InvalidRequestError
 from src.domain.request.events import RequestSubmitted1, PlaylistCreatedForRequest, \
@@ -16,9 +19,9 @@ acceptable_age_threshold = timezone.now() - relativedelta(months=18)
 class Request(AggregateBase):
   def __init__(self):
     super().__init__()
-    self._promoted_albums = []
-    self._promoted_artists = set()
-    self._playlist_albums = []
+    self._promoted_album_ids = []
+    self._promoted_artist_ids = set()
+    self._playlist_album_ids = []
     self.playlist = None
 
   @classmethod
@@ -46,7 +49,7 @@ class Request(AggregateBase):
 
     promoted_albums = []
     # it's possible other request artists triggered this album to be processed already.
-    if album_id not in self._promoted_albums:
+    if album_id not in self._promoted_album_ids:
 
       if acceptable_age_threshold <= release_date:
         promoted_albums.append((album_id, artist_id))
@@ -59,14 +62,30 @@ class Request(AggregateBase):
   def refresh_playlist(self):
     if self.playlist.track_ids: raise InvalidRequestError('playlist already refreshed')
 
-    # for _promoted_artist in self._promoted_artists:
-    #   artist_data =
+    root_artists = []
+    for root_artists_id in self.root_artists_ids:
+      root_artists.append(get_artist_info(root_artists_id))
 
-    #
+    promoted_artist_calc_data = []
+    promoted_artists_data = []
+
     # go through each promoted artist.
+    for artist_id in self._promoted_artist_ids:
+      artist_data = get_artist_info(artist_id)
+      promoted_artists_data.append(artist_data)
+
+    for promoted_artist in promoted_artists_data:
+      genres = set(promoted_artist['genres'])
+      highest_genre_overlap = max(len(genres.intersection(set(ra['genres']))) for ra in root_artists)
+      promoted_artist_calc_data.append({'id': promoted_artist['id'], 'genre_score': highest_genre_overlap})
+
     # does this promoted artist match enough genres of any root artists
+    for a in sorted(promoted_artist_calc_data, key=itemgetter('genre_score'), reverse=True):
+      artist_data = get_artist_info(a['id'])
+      # Get it's most popular tracks. are they recent? are they in the promoted albums?
+      top_tracks = None
+      promoted_artists_data.append(artist_data)
     # if so, does this song seem similar enough to the top track of any root artists?
-    # Get it's most popular tracks. are they recent? are they in the promoted albums?
     # does this anchor song have a good follow up song? a smooth transition song?
     # go through each root artist
 
@@ -107,15 +126,15 @@ class Request(AggregateBase):
     self.root_artists_ids = event.data['artist_ids']
 
   def _handle_album_promoted_1_event(self, event):
-    self._promoted_albums.append(event.album_id)
-    self._promoted_artists.add(event.artist_id)
+    self._promoted_album_ids.append(event.album_id)
+    self._promoted_artist_ids.add(event.artist_id)
 
   def _handle_playlist_created_1_event(self, event):
     self.playlist = SpotifyPlaylist(event.data['provider_type'], event.data['external_id'])
 
   def _handle_playlist_refreshed_1_event(self, event):
     self.playlist = SpotifyPlaylist(self.playlist.provider_type, self.playlist.external_id, event.data['track_ids'])
-    self._playlist_albums.append(event.data['album_id'])
+    self._playlist_album_ids.append(event.data['album_id'])
 
   def __str__(self):
     class_name = self.__class__.__name__

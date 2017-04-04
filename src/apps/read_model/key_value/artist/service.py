@@ -1,3 +1,4 @@
+import ast
 import json
 
 from src.apps.read_model.key_value.common import get_read_model_name
@@ -200,5 +201,17 @@ def save_artist_info(artist_id, genres, popularity):
   data = {'genres': genres, 'popularity': popularity}
 
   ret_val = kdb.hmset(get_read_model_name('artist_info:{0}', artist_id), data)
+
+  return ret_val
+
+
+def get_artist_info(artist_id):
+  kdb = get_key_value_client()
+
+  ret_val = kdb.hgetall(get_read_model_name('artist_info:{0}', artist_id))
+
+  if ret_val:
+    ret_val = dict(map(lambda m: (m[0].decode(), m[1].decode()), ret_val.items()))
+    ret_val = {'id': artist_id, 'genres': ast.literal_eval(ret_val['genres']), 'popularity': int(ret_val['popularity'])}
 
   return ret_val
