@@ -35,5 +35,5 @@ class PlaylistRefreshedWithTracks1(DomainEvent):
   event_signal = EventSignal()
 
   @initializer
-  def __init__(self, track_ids, provider_type, external_id, album_id):
+  def __init__(self, track_ids, provider_type, external_id):
     super().__init__()

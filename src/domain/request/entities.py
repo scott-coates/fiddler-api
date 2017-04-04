@@ -3,6 +3,7 @@ from operator import itemgetter
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from numpy.random import choice
+import random
 
 from src.apps.music_discovery.service import create_playlist
 from src.apps.read_model.key_value.artist.service import get_artist_info
@@ -21,7 +22,6 @@ class Request(AggregateBase):
     super().__init__()
     self._promoted_album_ids = []
     self._promoted_artist_ids = set()
-    self._playlist_album_ids = []
     self.playlist = None
 
   @classmethod
@@ -62,13 +62,14 @@ class Request(AggregateBase):
   def refresh_playlist(self):
     if self.playlist.track_ids: raise InvalidRequestError('playlist already refreshed')
 
+    playlist_track_ids = []
+
     root_artists = []
     for root_artists_id in self.root_artists_ids:
       root_artists.append(get_artist_info(root_artists_id))
 
     promoted_artist_calc_data = []
     promoted_artists_data = []
-
     # go through each promoted artist.
     for artist_id in self._promoted_artist_ids:
       artist_data = get_artist_info(artist_id)
@@ -82,16 +83,25 @@ class Request(AggregateBase):
     # does this promoted artist match enough genres of any root artists
     for a in sorted(promoted_artist_calc_data, key=itemgetter('genre_score'), reverse=True):
       artist_data = get_artist_info(a['id'])
+
       # Get it's most popular tracks. are they recent? are they in the promoted albums?
-      top_tracks = None
-      promoted_artists_data.append(artist_data)
+      for top_track in artist_data['top_tracks']:
+        top_track_album_id = top_track['album_id']
+        if top_track_album_id in self._promoted_album_ids:
+          playlist_track_ids.append(top_track['track_id'])
+
+    if playlist_track_ids:
+      # track_count = choice([10,11,12,13,14,15,16], p=[0.75, 0.2, 0.05])
+      track_count = random.choice(range(10, 16))
+      playlist_track_ids = [playlist_track_ids[i] for i in
+                            sorted(random.sample(range(len(playlist_track_ids)), track_count))]
+
+    self._raise_event(
+      PlaylistRefreshedWithTracks1(playlist_track_ids, self.playlist.provider_type, self.playlist.external_id))
+
     # if so, does this song seem similar enough to the top track of any root artists?
     # does this anchor song have a good follow up song? a smooth transition song?
     # go through each root artist
-
-    root_artists = self.root_artists_ids
-    # root_artist_data = []
-    # for artist in root_artists:
 
 
     #
@@ -134,7 +144,6 @@ class Request(AggregateBase):
 
   def _handle_playlist_refreshed_1_event(self, event):
     self.playlist = SpotifyPlaylist(self.playlist.provider_type, self.playlist.external_id, event.data['track_ids'])
-    self._playlist_album_ids.append(event.data['album_id'])
 
   def __str__(self):
     class_name = self.__class__.__name__

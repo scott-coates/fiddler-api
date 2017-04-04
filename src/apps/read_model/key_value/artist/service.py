@@ -139,11 +139,6 @@ def get_album_data(album_id):
   return ret_val
 
 
-def add_top_tracks_to_artist(artist_id, track_ids):
-  track_data = []
-  return None
-
-
 #
 # def save_recent_prospect_discovery_network_connections_from_eo(eo_attrs, provider_type, prospect_id):
 #   ret_val = []
@@ -205,6 +200,14 @@ def save_artist_info(artist_id, genres, popularity):
   return ret_val
 
 
+def save_artist_top_tracks(artist_id, track_data):
+  kdb = get_key_value_client()
+
+  ret_val = kdb.hset(get_read_model_name('artist_info:{0}', artist_id), 'top_tracks', track_data)
+
+  return ret_val
+
+
 def get_artist_info(artist_id):
   kdb = get_key_value_client()
 
@@ -212,6 +215,11 @@ def get_artist_info(artist_id):
 
   if ret_val:
     ret_val = dict(map(lambda m: (m[0].decode(), m[1].decode()), ret_val.items()))
-    ret_val = {'id': artist_id, 'genres': ast.literal_eval(ret_val['genres']), 'popularity': int(ret_val['popularity'])}
+    ret_val = {
+      'id': artist_id,
+      'genres': ast.literal_eval(ret_val['genres']),
+      'top_tracks': ast.literal_eval(ret_val['top_tracks']),
+      'popularity': int(ret_val['popularity'])
+    }
 
   return ret_val

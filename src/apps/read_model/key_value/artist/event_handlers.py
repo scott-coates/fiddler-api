@@ -15,6 +15,7 @@ def execute_artist_created_1(**kwargs):
   genres = event.data['genres']
   popularity = event.data['popularity']
   tasks.save_artist_info_task.delay(artist_id, genres, popularity, )
+  tasks.add_external_artist_id_task(artist_id, event.data['provider_type'], event.data['external_id'])
 
 
 @event_idempotent
@@ -47,6 +48,17 @@ def execute_track_1(**kwargs):
 
   tasks.add_track_to_album_task.delay(album_id, track_data)
   tasks.set_track_external_id_task.delay(id, provider_type, external_id)
+
+
+@event_idempotent
+@receiver(TopTracksRefreshed1.event_signal)
+def refreshed_top_tracks_1(**kwargs):
+  event = kwargs['event']
+
+  artist_id = kwargs['aggregate_id']
+  track_data = event.data['track_data']
+
+  tasks.save_artist_top_tracks_task.delay(artist_id, track_data)
 
 
   #

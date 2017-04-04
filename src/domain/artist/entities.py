@@ -97,7 +97,7 @@ class Artist(AggregateBase):
     album.add_track(event.id, event.name, event.external_id)
 
   def _handle_top_tracks_refreshed_1_event(self, event):
-    self._top_tracks = event.track_ids
+    self._top_tracks = event.data['track_data']
 
   def __str__(self):
     return 'Artist {id}: {name}'.format(id=self.id, name=self.name)

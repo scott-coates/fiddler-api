@@ -49,3 +49,12 @@ from django.dispatch import receiver
 # def agreement_delete_callback(**kwargs):
 #   agreement_id = kwargs['aggregate_id']
 #   tasks.delete_agreement_task.delay(agreement_id)
+from src.apps.music_discovery import tasks
+from src.domain.artist.events import ArtistCreated1
+from src.libs.common_domain.decorators import event_idempotent
+
+
+@receiver(ArtistCreated1.event_signal)
+def artist_cratedassignment_batch_1(**kwargs):
+  artist_id = kwargs['aggregate_id']
+  tasks.discover_top_tracks_for_artist_task.delay(artist_id)

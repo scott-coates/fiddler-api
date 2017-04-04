@@ -138,7 +138,7 @@ def update_playlist_with_tracks_task(playlist_id, track_ids, ):
 def discover_top_tracks_for_artist_task(artist_id):
   tracks = service.discover_top_tracks_for_artist(artist_id)
 
-  albums = groupby(tracks, itemgetter('album.id'))
+  albums = groupby(tracks, lambda x: x['album']['id'])
 
   for album_key, top_tracks in albums:
     album = list(top_tracks)[0]['album']

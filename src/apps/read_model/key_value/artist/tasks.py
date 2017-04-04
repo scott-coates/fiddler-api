@@ -55,3 +55,8 @@ def add_external_artist_id_task(artist_id, provider_type, external_id):
 @job('high')
 def save_artist_info_task(artist_id, genres, popularity):
   return service.save_artist_info(artist_id, genres, popularity)
+
+
+@job('high')
+def save_artist_top_tracks_task(artist_id, track_data):
+  return service.save_artist_top_tracks(artist_id, track_data)

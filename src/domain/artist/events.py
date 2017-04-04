@@ -35,5 +35,5 @@ class TopTracksRefreshed1(DomainEvent):
   event_signal = EventSignal()
 
   @initializer
-  def __init__(self, track_ids, ):
+  def __init__(self, track_data, ):
     super().__init__()
