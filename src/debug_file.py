@@ -1,7 +1,7 @@
 import django
 
 django.setup()
-from src.apps.read_model.key_value.artist.service import get_album_data
+from src.apps.read_model.key_value.artist.service import get_album_tracks
 from src.domain.request.entities import Request
 from src.libs.common_domain import aggregate_repository, event_repository
 
@@ -58,7 +58,7 @@ send_command(-1, SubmitRequest(request_id, artists_info[0], artists_info[1]))
 #
 # ag = aggregate_repository.get(Request, "wQHMN42B")
 #
-# # events = event_repository.get_events(['AlbumPromotedToRequest1']).filter(stream_id=ag.id)
+# # events = event_repository.get_events(['ArtistPromotedToRequest1']).filter(stream_id=ag.id)
 # #
 # # for event in events:
 # #   album = get_album_data(event.event_data['album_id'])

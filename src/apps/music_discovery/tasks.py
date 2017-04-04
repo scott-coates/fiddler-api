@@ -5,6 +5,8 @@ from operator import itemgetter
 from django_rq import job
 
 from src.apps.music_discovery import service
+from src.apps.music_discovery.service import submit_artist_to_request
+from src.apps.read_model.key_value.request.service import incr_artists_for_request, get_artists_count_for_request
 from src.domain.artist.errors import TopTracksExistError
 from src.domain.request.commands import RefreshPlaylist
 from src.libs.common_domain import dispatcher
@@ -115,7 +117,16 @@ logger = logging.getLogger(__name__)
 
 @job('high')
 def discover_music_for_request_task(request_id, artist_name):
-  return service.discover_music_for_request(request_id, artist_name)
+  add_artist_to_request_list = service.discover_music_for_request(request_id, artist_name)
+
+  for artist_item in add_artist_to_request_list:
+    submit_artist_to_request_task.delay(artist_item[0], artist_item[1], artist_item[2])
+
+  artists_to_add = len(add_artist_to_request_list)
+  incr_artists_for_request(request_id, artists_to_add)
+
+  return add_artist_to_request_list
+
 
 
 @job('high')
@@ -124,7 +135,7 @@ def discover_tracks_for_album_task(album_id, artist_id):
 
 
 @job('high')
-def update_request_playlist_task(request_id):
+def refresh_request_playlist_task(request_id):
   refresh = RefreshPlaylist()
   dispatcher.send_command(request_id, refresh)
 
@@ -156,3 +167,8 @@ def add_artist_top_tracks_task(artist_id, external_track_ids, ):
     service.add_artist_top_tracks(artist_id, external_track_ids, )
   except TopTracksExistError:
     pass
+
+
+@job('high')
+def submit_artist_to_request_task(request_id, artist_id, root_artist_id, ):
+  return service.submit_artist_to_request(request_id, artist_id, root_artist_id, )

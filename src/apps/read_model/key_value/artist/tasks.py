@@ -29,12 +29,17 @@ logger = logging.getLogger(__name__)
 
 @job('high')
 def set_album_external_id_task(album_id, release_date, provider_type, external_id):
-  return service.set_album_external_id(album_id, release_date, provider_type, external_id)
+  return service.set_album_info(album_id, release_date, provider_type, external_id)
 
 
 @job('high')
 def set_album_id_task(album_id, provider_type, external_id):
   return service.set_album_id(album_id, provider_type, external_id)
+
+
+@job('high')
+def add_album_to_artist_task(album_id, artist_id):
+  return service.add_album_to_artist(album_id, artist_id)
 
 
 @job('high')

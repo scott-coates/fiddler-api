@@ -1,3 +1,4 @@
+from collections import defaultdict
 from operator import itemgetter
 
 from dateutil.relativedelta import relativedelta
@@ -6,11 +7,12 @@ from numpy.random import choice
 import random
 
 from src.apps.music_discovery.service import create_playlist
-from src.apps.read_model.key_value.artist.service import get_artist_info
+from src.apps.read_model.key_value.artist.service import get_artist_info, get_artist_albums, get_album_tracks, \
+  get_album_info
 from src.domain.common import constants
 from src.domain.request.errors import DuplicateAlbumInRequestError, InvalidRequestError
 from src.domain.request.events import RequestSubmitted1, PlaylistCreatedForRequest, \
-  PlaylistRefreshedWithTracks1, AlbumPromotedToRequest1
+  PlaylistRefreshedWithTracks1, ArtistPromotedToRequest1, ArtistSkippedByRequest1
 from src.domain.request.value_objects import SpotifyPlaylist
 from src.libs.common_domain.aggregate_base import AggregateBase
 
@@ -20,8 +22,8 @@ acceptable_age_threshold = timezone.now() - relativedelta(months=18)
 class Request(AggregateBase):
   def __init__(self):
     super().__init__()
-    self._promoted_album_ids = []
-    self._promoted_artist_ids = set()
+    self._promoted_artists = defaultdict(list)
+    self._skipped_artists = defaultdict(list)
     self.playlist = None
 
   @classmethod
@@ -42,22 +44,22 @@ class Request(AggregateBase):
 
     return ret_val
 
-  def submit_potential_album(self, album_id, release_date, artist_id):
-    assert album_id
-    assert release_date
+  def submit_potential_artist(self, artist_id, root_artist_id):
     assert artist_id
+    assert root_artist_id
 
-    promoted_albums = []
     # it's possible other request artists triggered this album to be processed already.
-    if album_id not in self._promoted_album_ids:
+    if artist_id not in self._promoted_artists[root_artist_id]:
 
-      if acceptable_age_threshold <= release_date:
-        promoted_albums.append((album_id, artist_id))
+      artist_albums = get_artist_albums(artist_id)
 
-    if promoted_albums:
-      promoted_albums_count = len(promoted_albums)
-      for promoted_album in promoted_albums:
-        self._raise_event(AlbumPromotedToRequest1(promoted_album[0], promoted_albums_count, promoted_album[1]))
+      album_data = [get_album_info(a) for a in artist_albums]
+      most_recent_album = max(a['release_date'] for a in album_data)
+
+      if acceptable_age_threshold <= most_recent_album:
+        self._raise_event(ArtistPromotedToRequest1(artist_id, root_artist_id))
+      else:
+        self._raise_event(ArtistSkippedByRequest1(artist_id, root_artist_id))
 
   def refresh_playlist(self):
     if self.playlist.track_ids: raise InvalidRequestError('playlist already refreshed')
@@ -97,7 +99,7 @@ class Request(AggregateBase):
                             sorted(random.sample(range(len(playlist_track_ids)), track_count))]
 
     self._raise_event(
-      PlaylistRefreshedWithTracks1(playlist_track_ids, self.playlist.provider_type, self.playlist.external_id))
+        PlaylistRefreshedWithTracks1(playlist_track_ids, self.playlist.provider_type, self.playlist.external_id))
 
     # if so, does this song seem similar enough to the top track of any root artists?
     # does this anchor song have a good follow up song? a smooth transition song?
@@ -135,9 +137,11 @@ class Request(AggregateBase):
     self.id = event.id
     self.root_artists_ids = event.data['artist_ids']
 
-  def _handle_album_promoted_1_event(self, event):
-    self._promoted_album_ids.append(event.album_id)
-    self._promoted_artist_ids.add(event.artist_id)
+  def _handle_artist_promoted_1_event(self, event):
+    self._promoted_artists[event.data['root_artist_id']].append(event.data['artist_id'])
+
+  def _handle_artist_skipped_1_event(self, event):
+    pass
 
   def _handle_playlist_created_1_event(self, event):
     self.playlist = SpotifyPlaylist(event.data['provider_type'], event.data['external_id'])

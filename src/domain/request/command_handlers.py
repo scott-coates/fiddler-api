@@ -1,7 +1,7 @@
 from django.dispatch import receiver
 
-from src.apps.read_model.key_value.artist.service import get_album_data
-from src.domain.request.commands import AddAlbumToRequest, SubmitRequest, RefreshPlaylist
+from src.apps.read_model.key_value.artist.service import get_album_tracks
+from src.domain.request.commands import SubmitArtistToRequest, SubmitRequest, RefreshPlaylist
 from src.domain.request.entities import Request
 from src.libs.common_domain import aggregate_repository
 
@@ -15,8 +15,8 @@ def submit_request(_aggregate_repository=None, **kwargs):
   _aggregate_repository.save(request, -1)
 
 
-@receiver(AddAlbumToRequest.command_signal)
-def add_album_request(_aggregate_repository=None, **kwargs):
+@receiver(SubmitArtistToRequest.command_signal)
+def add_artist_request(_aggregate_repository=None, **kwargs):
   if not _aggregate_repository: _aggregate_repository = aggregate_repository
   command = kwargs['command']
 
@@ -24,7 +24,7 @@ def add_album_request(_aggregate_repository=None, **kwargs):
 
   version = ag.version
 
-  ag.submit_potential_album(**command.data)
+  ag.submit_potential_artist(**command.data)
 
   _aggregate_repository.save(ag, version)
 

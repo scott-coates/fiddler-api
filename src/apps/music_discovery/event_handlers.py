@@ -3,8 +3,10 @@ import webbrowser
 from django.dispatch import receiver
 
 from src.apps.music_discovery import tasks
-from src.domain.request.events import RequestSubmitted1, PlaylistRefreshedWithTracks1, AlbumPromotedToRequest1, \
+from src.apps.read_model.key_value.request.service import incr_artist_promoted
+from src.domain.request.events import RequestSubmitted1, PlaylistRefreshedWithTracks1, ArtistPromotedToRequest1, \
   PlaylistCreatedForRequest
+from src.libs.common_domain.decorators import event_idempotent
 
 
 @receiver(RequestSubmitted1.event_signal)
@@ -18,16 +20,6 @@ def execute_assignment_batch_1(**kwargs):
   for artist_name in artist_names:
     tasks.discover_music_for_request_task.delay(r_id, artist_name)
 
-
-# todo move to reequest domain
-@receiver(AlbumPromotedToRequest1.event_signal)
-def add_album_1(**kwargs):
-  event = kwargs['event']
-
-  album_id = event.data['album_id']
-  artist_id = event.data['artist_id']
-
-  tasks.discover_tracks_for_album_task.delay(album_id, artist_id)
 
 
 @receiver(PlaylistRefreshedWithTracks1.event_signal)
@@ -46,4 +38,5 @@ def open_playlist(**kwargs):
   event = kwargs['event']
 
   spotify_url = event.data['external_url']
+  print(spotify_url)
   webbrowser.open(spotify_url)

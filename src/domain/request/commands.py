@@ -11,11 +11,11 @@ class SubmitRequest(DomainCommand):
     pass
 
 
-class AddAlbumToRequest(DomainCommand):
+class SubmitArtistToRequest(DomainCommand):
   command_signal = CommandSignal()
 
   @initializer
-  def __init__(self, album_id, release_date, artist_id):
+  def __init__(self, artist_id, root_artist_id):
     pass
 
 class RefreshPlaylist(DomainCommand):

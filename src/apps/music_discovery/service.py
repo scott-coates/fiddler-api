@@ -7,14 +7,15 @@ import spotipy.util as util
 from django.conf import settings
 from spotipy.oauth2 import SpotifyClientCredentials
 
-from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_external_id, get_album_data, \
+from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_info, get_album_tracks, \
   get_track_external_id, \
   get_album_id, get_external_artist_id
+from src.apps.read_model.key_value.request.service import incr_artists_for_request
 from src.domain.artist.commands import CreateArtist, AddAlbum, AddTopTracksToArtist, AddTracksToAlbum
 from src.domain.artist.entities import Artist
 from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError
 from src.domain.common import constants
-from src.domain.request.commands import AddAlbumToRequest
+from src.domain.request.commands import SubmitArtistToRequest
 from src.libs.common_domain import aggregate_repository
 from src.libs.common_domain.dispatcher import send_command
 from src.libs.datetime_utils.datetime_parser import get_datetime
@@ -36,11 +37,16 @@ network = pylast.LastFMNetwork(settings.LAST_FM_API_KEY, settings.LAST_FM_API_SE
 def discover_music_for_request(request_id, root_artist_name):
   lfm_artist = network.get_artist(root_artist_name)
 
+  root_artist = get_sp_artist_by_name(root_artist_name)
+  root_artist_id = create_artist_from_spotify_object(root_artist)
+
   similar_artists = lfm_artist.get_similar(5)
   # similar_artists = lfm_artist.get_similar(100)
 
   similar_artist_names = [a.item.name for a in similar_artists]
   all_artists_names = [lfm_artist.get_name()] + similar_artist_names
+
+  add_artist_to_request_list = []
 
   for artist_name in all_artists_names:
     try:
@@ -60,16 +66,17 @@ def discover_music_for_request(request_id, root_artist_name):
         if not album_id:
           album_uri = album['uri']
           sp_album = sp.album(album_uri)
-          album_id, release_date = create_album_from_spotify_object(sp_album, artist_id, )
-        else:
-          release_date = get_datetime(get_album_external_id(album_id)['release_date'])
+          create_album_from_spotify_object(sp_album, artist_id, )
 
-        _add_album_to_request(request_id, album_id, release_date, artist_id)
+      add_artist_to_request_list.append((request_id, artist_id, root_artist_id))
+
     except (IndexError):
       # this artist isn't in spotify but is in last fm
       pass
     except:
       logger.exception('discover music for %s. similar: %s', artist_name, artist_name)
+
+    return add_artist_to_request_list
 
 
 def create_album_from_spotify_object(sp_album, artist_id, ):
@@ -99,9 +106,9 @@ def get_sp_artist_by_name(artist_name):
 
 
 def discover_tracks_for_album(album_id, artist_id):
-  album_data = get_album_data(album_id)
+  album_data = get_album_tracks(album_id)
   if not (album_data and album_data.get('tracks')):
-    external_id = get_album_external_id(album_id)['external_id']
+    external_id = get_album_info(album_id)['external_id']
 
     sp_album = sp.album(external_id)
     track_data = _get_tracks_and_features(sp_album['tracks']['items'])
@@ -169,10 +176,10 @@ def _create_album(name, release_date, provider_type, external_id, artist_id):
   return album_id
 
 
-def _add_album_to_request(request_id, album_id, release_date, artist_id):
-  add_album = AddAlbumToRequest(album_id, release_date, artist_id, )
-  send_command(request_id, add_album)
-  return album_id
+def submit_artist_to_request(request_id, artist_id, root_artist_id, ):
+  add_artist = SubmitArtistToRequest(artist_id, root_artist_id, )
+  send_command(request_id, add_artist)
+  return artist_id
 
 
 def discover_top_tracks_for_artist(artist_id):

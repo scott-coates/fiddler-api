@@ -21,12 +21,21 @@ class PlaylistCreatedForRequest(DomainEvent):
     super().__init__()
 
 
-class AlbumPromotedToRequest1(DomainEvent):
-  event_func_name = 'album_promoted_1'
+class ArtistPromotedToRequest1(DomainEvent):
+  event_func_name = 'artist_promoted_1'
   event_signal = EventSignal()
 
   @initializer
-  def __init__(self, album_id, total_albums_promoted, artist_id):
+  def __init__(self, artist_id, root_artist_id):
+    super().__init__()
+
+
+class ArtistSkippedByRequest1(DomainEvent):
+  event_func_name = 'artist_skipped_1'
+  event_signal = EventSignal()
+
+  @initializer
+  def __init__(self, artist_id, root_artist_id):
     super().__init__()
 
 

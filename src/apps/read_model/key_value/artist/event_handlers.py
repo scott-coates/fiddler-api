@@ -22,12 +22,15 @@ def execute_artist_created_1(**kwargs):
 @receiver(AlbumAddedToArtist1.event_signal)
 def execute_prospect_deleted_1(**kwargs):
   event = kwargs['event']
+  artist_id = kwargs['aggregate_id']
+
   album_id = event.data['id']
   release_date = event.data['release_date']
   provider_type = event.data['provider_type']
   external_id = event.data['external_id']
   tasks.set_album_external_id_task.delay(album_id, release_date, provider_type, external_id)
   tasks.set_album_id_task.delay(album_id, provider_type, external_id)
+  tasks.add_album_to_artist_task.delay(album_id, artist_id)
 
 
 @event_idempotent
