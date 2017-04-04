@@ -50,3 +50,8 @@ def set_track_external_id_task(track_id, provider_type, external_id):
 @job('high')
 def add_external_artist_id_task(artist_id, provider_type, external_id):
   return service.add_external_artist_id(artist_id, provider_type, external_id)
+
+
+@job('high')
+def save_artist_info_task(artist_id, genres, popularity):
+  return service.save_artist_info(artist_id, genres, popularity)

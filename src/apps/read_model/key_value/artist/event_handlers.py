@@ -12,9 +12,9 @@ from src.libs.common_domain.decorators import event_idempotent
 def execute_artist_created_1(**kwargs):
   event = kwargs['event']
   artist_id = kwargs['aggregate_id']
-  provider_type = event.data['provider_type']
-  external_id = event.data['external_id']
-  tasks.add_external_artist_id_task.delay(artist_id, provider_type, external_id)
+  genres = event.data['genres']
+  popularity = event.data['popularity']
+  tasks.save_artist_info_task.delay(artist_id, genres, popularity, )
 
 
 @event_idempotent

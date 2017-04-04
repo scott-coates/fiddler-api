@@ -142,6 +142,7 @@ def add_top_tracks_to_artist(artist_id, track_ids):
   track_data = []
   return None
 
+
 #
 # def save_recent_prospect_discovery_network_connections_from_eo(eo_attrs, provider_type, prospect_id):
 #   ret_val = []
@@ -194,3 +195,10 @@ def add_top_tracks_to_artist(artist_id, track_ids):
 #   ret_val = [json.loads(x.decode()) for x in redis_range]
 #
 #   return ret_val
+def save_artist_info(artist_id, genres, popularity):
+  kdb = get_key_value_client()
+  data = {'genres': genres, 'popularity': popularity}
+
+  ret_val = kdb.hmset(get_read_model_name('artist_info:{0}', artist_id), data)
+
+  return ret_val

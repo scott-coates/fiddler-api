@@ -17,6 +17,7 @@ class Request(AggregateBase):
   def __init__(self):
     super().__init__()
     self._promoted_albums = []
+    self._promoted_artists = set()
     self._playlist_albums = []
     self.playlist = None
 
@@ -58,8 +59,22 @@ class Request(AggregateBase):
   def refresh_playlist(self):
     if self.playlist.track_ids: raise InvalidRequestError('playlist already refreshed')
 
+    # for _promoted_artist in self._promoted_artists:
+    #   artist_data =
+
+    #
+    # go through each promoted artist.
+    # does this promoted artist match enough genres of any root artists
+    # if so, does this song seem similar enough to the top track of any root artists?
+    # Get it's most popular tracks. are they recent? are they in the promoted albums?
+    # does this anchor song have a good follow up song? a smooth transition song?
     # go through each root artist
+
     root_artists = self.root_artists_ids
+    # root_artist_data = []
+    # for artist in root_artists:
+
+
     #
     # # get root artist info
     #
@@ -93,6 +108,7 @@ class Request(AggregateBase):
 
   def _handle_album_promoted_1_event(self, event):
     self._promoted_albums.append(event.album_id)
+    self._promoted_artists.add(event.artist_id)
 
   def _handle_playlist_created_1_event(self, event):
     self.playlist = SpotifyPlaylist(event.data['provider_type'], event.data['external_id'])
