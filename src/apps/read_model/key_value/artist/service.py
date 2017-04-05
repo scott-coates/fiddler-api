@@ -238,7 +238,7 @@ def get_artist_info(artist_id):
     ret_val = dict(map(lambda m: (m[0].decode(), m[1].decode()), ret_val.items()))
     ret_val = {
       'id': artist_id,
-      'genres': ast.literal_eval(ret_val['genres']),
+      'genres': set(ast.literal_eval(ret_val['genres'])),
       'top_tracks': ast.literal_eval(ret_val['top_tracks']),
       'popularity': int(ret_val['popularity'])
     }

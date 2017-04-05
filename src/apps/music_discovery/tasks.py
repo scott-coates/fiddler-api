@@ -7,7 +7,7 @@ from django_rq import job
 from src.apps.music_discovery import service
 from src.apps.music_discovery.service import submit_artist_to_request
 from src.apps.read_model.key_value.request.service import incr_artists_for_request, get_artists_count_for_request
-from src.domain.artist.errors import TopTracksExistError
+from src.domain.artist.errors import TopTracksExistError, DuplicateTrackError
 from src.domain.request.commands import RefreshPlaylist
 from src.libs.common_domain import dispatcher
 
@@ -128,10 +128,12 @@ def discover_music_for_request_task(request_id, artist_name):
   return add_artist_to_request_list
 
 
-
 @job('high')
 def discover_tracks_for_album_task(album_id, artist_id):
-  return service.discover_tracks_for_album(album_id, artist_id)
+  try:
+    service.discover_tracks_for_album(album_id, artist_id)
+  except DuplicateTrackError:
+    pass
 
 
 @job('high')

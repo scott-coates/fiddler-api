@@ -19,6 +19,12 @@ from src.libs.common_domain.aggregate_base import AggregateBase
 acceptable_age_threshold = timezone.now() - relativedelta(months=18)
 
 
+def _get_track_count(root_artist_count):
+  track_count = random.choice(range(10, 16))
+  ret_val = min(round(track_count / root_artist_count), 1)
+  return ret_val
+
+
 class Request(AggregateBase):
   def __init__(self):
     super().__init__()
@@ -66,19 +72,33 @@ class Request(AggregateBase):
 
     playlist_track_ids = []
 
-    root_artists = []
-    for root_artists_id in self.root_artists_ids:
-      root_artists.append(get_artist_info(root_artists_id))
+    root_artist_count = len(self._promoted_artists)
 
+    track_count_per_root_artist = _get_track_count(root_artist_count)
+
+    for root_artist_id, promoted_artist_ids in self._promoted_artists.items():
+      counter = 0
+      root_artists = []
+      promoted_artists_data = []
+
+      root_artist_data = get_artist_info(root_artist_id)
+      root_artist_genres = root_artist_data['genres']
+
+      for promoted_artist_id in promoted_artist_ids:
+        promoted_artist_data = get_artist_info(promoted_artist_id)
+        promoted_artists_data.append(promoted_artist_data)
+
+      sorted_promoted_artists = sorted(promoted_artists_data,
+                                       key=lambda a: root_artist_genres.intersection(a['genres']), reverse=True)
+      for pa in sorted_promoted_artists:
+        # get top tracks from artist
+        # if top tracks are recent
+        if counter <= track_count_per_root_artist:
+          counter += 1
     promoted_artist_calc_data = []
     promoted_artists_data = []
     # go through each promoted artist.
-    for artist_id in self._promoted_artist_ids:
-      artist_data = get_artist_info(artist_id)
-      promoted_artists_data.append(artist_data)
-
     for promoted_artist in promoted_artists_data:
-      genres = set(promoted_artist['genres'])
       highest_genre_overlap = max(len(genres.intersection(set(ra['genres']))) for ra in root_artists)
       promoted_artist_calc_data.append({'id': promoted_artist['id'], 'genre_score': highest_genre_overlap})
 
