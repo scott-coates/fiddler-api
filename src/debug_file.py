@@ -12,20 +12,20 @@ from src.libs.common_domain.dispatcher import send_command
 from src.libs.python_utils.id.id_utils import generate_id
 
 # region bootstrap interact
-#
-# request_id = generate_id()
-#
+
+request_id = generate_id()
+
+artists = """
+red city radio
+the menzingers
+"""
+
 # artists = """
-# red city radio
-# the menzingers
+# Against Me!
+# Pussy Riot
+# Saul Williams
 # """
-#
-# # artists = """
-# # Against Me!
-# # Pussy Riot
-# # Saul Williams
-# # """
-#
+
 # artists = list(filter(bool, artists.split('\n')))
 #
 # artists_info = ([], [])
@@ -54,9 +54,9 @@ from src.libs.python_utils.id.id_utils import generate_id
 # endregion
 
 # region playlist curation
-request_id = generate_id()
-
-ag = aggregate_repository.get(Request, "SmA8uJLn")
+# request_id = generate_id()
+#
+ag = aggregate_repository.get(Request, "oH6suwyH")
 
 # events = event_repository.get_events(['ArtistPromotedToRequest1']).filter(stream_id=ag.id)
 #

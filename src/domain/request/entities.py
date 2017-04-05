@@ -76,6 +76,7 @@ class Request(AggregateBase):
     if self.playlist.track_ids: raise InvalidRequestError('playlist already refreshed')
 
     playlist_track_ids = []
+    artists_ids_in_playlist = set()
 
     root_artist_count = len(self._promoted_artists)
 
@@ -83,7 +84,6 @@ class Request(AggregateBase):
 
     for root_artist_id, promoted_artist_ids in self._promoted_artists.items():
       counter = 0
-      root_artists = []
       promoted_artists_data = []
 
       root_artist_data = get_artist_info(root_artist_id)
@@ -98,7 +98,7 @@ class Request(AggregateBase):
       for pa in sorted_promoted_artists:
         # get top tracks from artist
         top_track_albums = defaultdict(list)
-
+        promoted_artist_id = pa['id']
         pa_top_tracks = sorted(pa['top_tracks'], key=_get_album_id)
         for track in pa_top_tracks:
           top_track_albums[track['album_id']].append(track['track_id'])
@@ -108,10 +108,21 @@ class Request(AggregateBase):
         for album_id, top_track_ids in top_track_albums.items():
           album = albums[album_id]
           if acceptable_age_threshold <= album['release_date']:
+
             for track_id in top_track_ids:
+
               if counter <= track_count_per_root_artist:
-                if random.choices([0, 1], weights=[0.8, 0.2])[0]:
+
+                artist_already_in_playlist = promoted_artist_id in artists_ids_in_playlist
+
+                if artist_already_in_playlist:
+                  prob = [0.99, .01]
+                else:
+                  prob = [0.8, 0.2]
+
+                if random.choices([0, 1], weights=prob)[0]:
                   playlist_track_ids.append(track_id)
+                  artists_ids_in_playlist.add(promoted_artist_id)
                   counter += 1
               else:
                 # we've reached the breaking point, no more tracks for this root artist
@@ -127,7 +138,8 @@ class Request(AggregateBase):
 
     if playlist_track_ids:
       self._raise_event(
-          PlaylistRefreshedWithTracks1(playlist_track_ids, self.playlist.provider_type, self.playlist.external_id))
+          PlaylistRefreshedWithTracks1(playlist_track_ids, artists_ids_in_playlist, self.playlist.provider_type,
+                                       self.playlist.external_id))
 
   def _handle_submitted_1_event(self, event):
     self.id = event.id
