@@ -1,9 +1,10 @@
 from collections import defaultdict
+from itertools import groupby
 from operator import itemgetter
 
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
-from numpy.random import choice
+
 import random
 
 from src.apps.music_discovery.service import create_playlist
@@ -19,10 +20,14 @@ from src.libs.common_domain.aggregate_base import AggregateBase
 acceptable_age_threshold = timezone.now() - relativedelta(months=18)
 
 
-def _get_track_count(root_artist_count):
+def _get_track_count_per_root_artist(root_artist_count):
   track_count = random.choice(range(10, 16))
-  ret_val = min(round(track_count / root_artist_count), 1)
+  ret_val = max(round(track_count / root_artist_count), 1)
   return ret_val
+
+
+def _get_album_id(a):
+  return a['album_id']
 
 
 class Request(AggregateBase):
@@ -74,7 +79,7 @@ class Request(AggregateBase):
 
     root_artist_count = len(self._promoted_artists)
 
-    track_count_per_root_artist = _get_track_count(root_artist_count)
+    track_count_per_root_artist = _get_track_count_per_root_artist(root_artist_count)
 
     for root_artist_id, promoted_artist_ids in self._promoted_artists.items():
       counter = 0
@@ -92,66 +97,37 @@ class Request(AggregateBase):
                                        key=lambda a: root_artist_genres.intersection(a['genres']), reverse=True)
       for pa in sorted_promoted_artists:
         # get top tracks from artist
-        # if top tracks are recent
-        if counter <= track_count_per_root_artist:
-          counter += 1
-    promoted_artist_calc_data = []
-    promoted_artists_data = []
-    # go through each promoted artist.
-    for promoted_artist in promoted_artists_data:
-      highest_genre_overlap = max(len(genres.intersection(set(ra['genres']))) for ra in root_artists)
-      promoted_artist_calc_data.append({'id': promoted_artist['id'], 'genre_score': highest_genre_overlap})
+        top_track_albums = defaultdict(list)
 
-    # does this promoted artist match enough genres of any root artists
-    for a in sorted(promoted_artist_calc_data, key=itemgetter('genre_score'), reverse=True):
-      artist_data = get_artist_info(a['id'])
+        pa_top_tracks = sorted(pa['top_tracks'], key=_get_album_id)
+        for track in pa_top_tracks:
+          top_track_albums[track['album_id']].append(track['track_id'])
 
-      # Get it's most popular tracks. are they recent? are they in the promoted albums?
-      for top_track in artist_data['top_tracks']:
-        top_track_album_id = top_track['album_id']
-        if top_track_album_id in self._promoted_album_ids:
-          playlist_track_ids.append(top_track['track_id'])
+        # grouped_top_tracks_by_album = groupby(pa_top_tracks, _get_album_id) -- NOT WORKING
+        albums = {a: get_album_info(a) for a in top_track_albums.keys()}
+        for album_id, top_track_ids in top_track_albums.items():
+          album = albums[album_id]
+          if acceptable_age_threshold <= album['release_date']:
+            for track_id in top_track_ids:
+              if counter <= track_count_per_root_artist:
+                if random.choices([0, 1], weights=[0.8, 0.2])[0]:
+                  playlist_track_ids.append(track_id)
+                  counter += 1
+              else:
+                # we've reached the breaking point, no more tracks for this root artist
+                break
+            else:
+              # http://stackoverflow.com/questions/653509/breaking-out-of-nested-loops
+              # break out of nested loops
+              continue
+            break
+        else:
+          continue
+        break
 
     if playlist_track_ids:
-      # track_count = choice([10,11,12,13,14,15,16], p=[0.75, 0.2, 0.05])
-      track_count = random.choice(range(10, 16))
-      playlist_track_ids = [playlist_track_ids[i] for i in
-                            sorted(random.sample(range(len(playlist_track_ids)), track_count))]
-
-    self._raise_event(
-        PlaylistRefreshedWithTracks1(playlist_track_ids, self.playlist.provider_type, self.playlist.external_id))
-
-    # if so, does this song seem similar enough to the top track of any root artists?
-    # does this anchor song have a good follow up song? a smooth transition song?
-    # go through each root artist
-
-
-    #
-    # # get root artist info
-    #
-    # # root_artist_top_tracks = self.root_artists_ids =
-    #
-    # # artist data
-    # # what else - i'll need artist info
-    # # i'll need track info
-    # current_tracks = self.playlist.track_ids
-    #
-    # track_ids = [t['id'] for t in album['tracks']]
-    #
-    # probability = [t['features']['energy'] if t['features'] else .5 for t in album['tracks']]
-    # sum_probability = sum(probability)
-    # probability = [p / sum_probability for p in probability]
-    #
-    # track_count = choice([0, 1, 2], p=[0.75, 0.2, 0.05])
-    #
-    # # todo use python 3.6 built-in choices func
-    # track_ids = list(set(choice(track_ids, track_count, p=probability)))
-    #
-    # if track_ids:
-    #   track_ids.extend(self.playlist.track_ids)
-    #   assert len(set(track_ids)) == len(track_ids), 'track_ids exist already: %s' % track_ids
-    #   self._raise_event(
-    #       PlaylistRefreshedWithTracks1(track_ids, self.playlist.provider_type, self.playlist.external_id, album_id))
+      self._raise_event(
+          PlaylistRefreshedWithTracks1(playlist_track_ids, self.playlist.provider_type, self.playlist.external_id))
 
   def _handle_submitted_1_event(self, event):
     self.id = event.id

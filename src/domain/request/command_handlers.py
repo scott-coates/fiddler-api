@@ -41,4 +41,4 @@ def refresh_album_request(_aggregate_repository=None, **kwargs):
 
   ag.refresh_playlist()
 
-  # _aggregate_repository.save(ag, version)
+  _aggregate_repository.save(ag, version)
