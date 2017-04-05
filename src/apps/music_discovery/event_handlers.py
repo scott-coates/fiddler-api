@@ -1,3 +1,4 @@
+import logging
 import webbrowser
 
 from django.dispatch import receiver
@@ -7,6 +8,8 @@ from src.apps.read_model.key_value.request.service import incr_artist_promoted
 from src.domain.request.events import RequestSubmitted1, PlaylistRefreshedWithTracks1, ArtistPromotedToRequest1, \
   PlaylistCreatedForRequest
 from src.libs.common_domain.decorators import event_idempotent
+
+logger = logging.getLogger(__name__)
 
 
 @receiver(RequestSubmitted1.event_signal)
@@ -19,7 +22,6 @@ def execute_assignment_batch_1(**kwargs):
 
   for artist_name in artist_names:
     tasks.discover_music_for_request_task.delay(r_id, artist_name)
-
 
 
 @receiver(PlaylistRefreshedWithTracks1.event_signal)
@@ -38,5 +40,5 @@ def open_playlist(**kwargs):
   event = kwargs['event']
 
   spotify_url = event.data['external_url']
-  print(spotify_url)
   webbrowser.open(spotify_url)
+  logger.info(spotify_url)
