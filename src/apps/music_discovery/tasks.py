@@ -1,20 +1,19 @@
 import logging
 from itertools import groupby
-from operator import itemgetter
 
-from django_rq import job
+from tasktiger import fixed
 
 from src.apps.music_discovery import service
-from src.apps.music_discovery.service import submit_artist_to_request
-from src.apps.read_model.key_value.request.service import incr_artists_for_request, get_artists_count_for_request
+from src.apps.read_model.key_value.request.service import incr_artists_for_request
 from src.domain.artist.errors import TopTracksExistError, DuplicateTrackError
 from src.domain.request.commands import RefreshPlaylist
 from src.libs.common_domain import dispatcher
+from src.libs.job_utils.job_decorator import job
 
 logger = logging.getLogger(__name__)
 
 
-# @job('high')
+# @job(queue='high')
 # def create_artist_task(_aggregate_repo=None, _dispatcher=None, **kwargs):
 #   if not _aggregate_repo: _aggregate_repo = aggregate_repository
 #   if not _dispatcher: _dispatcher = dispatcher
@@ -42,7 +41,7 @@ logger = logging.getLogger(__name__)
 #       _dispatcher.send_command(agreement_id, create_agreement)
 #
 #
-# @job('default')
+# @job(queue='default')
 # def send_alerts_for_agreements_task():
 #   # get list of agreements where the flag is enabled, not created, and date has passed
 #   agreement_ids_with_due_outcome_alerts = (
@@ -71,7 +70,7 @@ logger = logging.getLogger(__name__)
 #     send_alert_for_agreement_task.delay(ag_id)
 #
 #
-# @job('default')
+# @job(queue='default')
 # def send_alert_for_agreement_task(agreement_id, _dispatcher=None):
 #   if not _dispatcher: _dispatcher = dispatcher
 #   log_message = ("Send agreement alert task for id: %s", agreement_id)
@@ -82,7 +81,7 @@ logger = logging.getLogger(__name__)
 #     _dispatcher.send_command(agreement_id, send_alerts_command)
 #
 #
-# @job('high')
+# @job(queue='high')
 # def save_agreement_alert_task(agreement_id,
 #                               outcome_alert_date, outcome_alert_enabled, outcome_alert_created,
 #                               outcome_notice_alert_date, outcome_notice_alert_enabled, outcome_notice_alert_created,
@@ -99,7 +98,7 @@ logger = logging.getLogger(__name__)
 #                                          outcome_notice_alert_created).id
 #
 #
-# @job('high')
+# @job(queue='high')
 # def save_agreement_search_task(agreement_id, user_id, name, counterparty, agreement_type_id):
 #   log_message = ("Save agreement_search task for agreement_id: %s", agreement_id)
 #
@@ -107,7 +106,7 @@ logger = logging.getLogger(__name__)
 #     return services.save_agreement_search(agreement_id, user_id, name, counterparty, agreement_type_id).id
 #
 #
-# @job('high')
+# @job(queue='high')
 # def delete_agreement_task(agreement_id):
 #   log_message = ("Delete agreement_search task for agreement_id: %s", agreement_id)
 #
@@ -115,7 +114,7 @@ logger = logging.getLogger(__name__)
 #     return services.delete_agreement(agreement_id)
 
 
-@job('high')
+@job(queue='high')
 def discover_music_for_request_task(request_id, artist_name):
   add_artist_to_request_list = service.discover_music_for_request(request_id, artist_name)
 
@@ -128,7 +127,7 @@ def discover_music_for_request_task(request_id, artist_name):
   return add_artist_to_request_list
 
 
-@job('high')
+@job(queue='high')
 def discover_tracks_for_album_task(album_id, artist_id):
   try:
     service.discover_tracks_for_album(album_id, artist_id)
@@ -136,22 +135,27 @@ def discover_tracks_for_album_task(album_id, artist_id):
     pass
 
 
-@job('high')
+@job(queue='high')
 def refresh_request_playlist_task(request_id):
   refresh = RefreshPlaylist()
   dispatcher.send_command(request_id, refresh)
 
 
-@job('high')
+@job(queue='high')
 def update_playlist_with_tracks_task(playlist_id, track_ids, ):
   return service.update_playlist_with_tracks(playlist_id, track_ids)
 
 
-@job('high')
+@job(queue='high')
 def discover_top_tracks_for_artist_task(artist_id):
+  def _get_album_id(t):
+    return t['album']['id']
+
   tracks = service.discover_top_tracks_for_artist(artist_id)
 
-  albums = groupby(tracks, lambda x: x['album']['id'])
+  # python requires sorting prior to groups
+  tracks = sorted(tracks, key=_get_album_id)
+  albums = groupby(tracks, key=_get_album_id)
 
   for album_key, top_tracks in albums:
     album = list(top_tracks)[0]['album']
@@ -163,7 +167,7 @@ def discover_top_tracks_for_artist_task(artist_id):
   add_artist_top_tracks_task.delay(artist_id, external_track_ids)
 
 
-@job('high')
+@job(queue='high', retry=True, retry_method=fixed(2, 3))
 def add_artist_top_tracks_task(artist_id, external_track_ids, ):
   try:
     service.add_artist_top_tracks(artist_id, external_track_ids, )
@@ -171,6 +175,6 @@ def add_artist_top_tracks_task(artist_id, external_track_ids, ):
     pass
 
 
-@job('high')
+@job(queue='high', retry_method=fixed(2, 3))
 def submit_artist_to_request_task(request_id, artist_id, root_artist_id, ):
   return service.submit_artist_to_request(request_id, artist_id, root_artist_id, )
