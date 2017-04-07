@@ -1,7 +1,7 @@
 from django.dispatch import receiver
 
 from src.apps.read_model.key_value.artist.service import add_unique_artist_id, clear_unique_artist_id
-from src.domain.artist.commands import CreateArtist, AddAlbum, AddTracksToAlbum, AddTopTracksToArtist
+from src.domain.artist.commands import CreateArtist, AddAlbum, AddTracksToAlbum, AddTopTracksToArtist, RelateArtist
 from src.domain.artist.entities import Artist
 from src.domain.artist.errors import DuplicateArtistError
 from src.libs.common_domain import aggregate_repository
@@ -23,6 +23,22 @@ def create_agreement(_aggregate_repository=None, **kwargs):
   except:
     clear_unique_artist_id(command.data['provider_type'], command.data['external_id'])
     raise
+
+
+@receiver(RelateArtist.command_signal)
+def relate(_aggregate_repository=None, **kwargs):
+  if not _aggregate_repository: _aggregate_repository = aggregate_repository
+  command = kwargs['command']
+
+  ag = _aggregate_repository.get(Artist, kwargs['aggregate_id'])
+  artist_id = command.data['artist_id']
+
+  if artist_id not in ag._related_artists:
+    version = ag.version
+
+    ag.relate_similar_artist(**command.data)
+
+    _aggregate_repository.save(ag, version)
 
 
 @receiver(AddAlbum.command_signal)

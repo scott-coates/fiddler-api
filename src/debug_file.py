@@ -19,9 +19,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 artists = """
-red city radio
-the menzingers
-iron chic
+civil war rust
+makewar
 """
 
 # artists = """

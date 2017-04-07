@@ -1,7 +1,9 @@
 from itertools import chain
 
-from src.domain.artist.errors import DuplicateAlbumError, DuplicateTrackError, TopTracksExistError
-from src.domain.artist.events import ArtistCreated1, AlbumAddedToArtist1, TrackAddedToAlbum1, TopTracksRefreshed1
+from src.domain.artist.errors import DuplicateAlbumError, DuplicateTrackError, TopTracksExistError, \
+  DuplicateRelatedArtistError
+from src.domain.artist.events import ArtistCreated1, AlbumAddedToArtist1, TrackAddedToAlbum1, TopTracksRefreshed1, \
+  ArtistRelatedToAnotherArtist1
 from src.libs.common_domain.aggregate_base import AggregateBase
 
 
@@ -10,6 +12,7 @@ class Artist(AggregateBase):
     super().__init__()
     self._albums = []
     self._top_tracks = []
+    self._related_artists = []
 
   @classmethod
   def from_attrs(cls, **kwargs):
@@ -59,6 +62,11 @@ class Artist(AggregateBase):
 
     self._raise_event(TopTracksRefreshed1(track_data))
 
+  def relate_similar_artist(self, artist_id, provider_type):
+    if artist_id in self._related_artists: raise DuplicateRelatedArtistError('artist already related.', artist_id)
+
+    self._raise_event(ArtistRelatedToAnotherArtist1(artist_id, provider_type))
+
   def _get_album_by_id(self, album_id):
     album = next(album for album in self._albums if album.id == album_id)
 
@@ -98,6 +106,9 @@ class Artist(AggregateBase):
 
   def _handle_top_tracks_refreshed_1_event(self, event):
     self._top_tracks = event.data['track_data']
+
+  def _handle_artist_related_1_event(self, event):
+    self._related_artists.append(event.data['artist_id'])
 
   def __str__(self):
     return 'Artist {id}: {name}'.format(id=self.id, name=self.name)

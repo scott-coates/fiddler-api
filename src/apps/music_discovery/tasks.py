@@ -114,7 +114,7 @@ logger = logging.getLogger(__name__)
 #   with log_wrapper(logger.info, *log_message):
 #     return services.delete_agreement(agreement_id)
 
-
+#todo move to spotify queue but make sure in correct domain first
 @job(queue='high')
 def discover_music_for_request_task(request_id, artist_name):
   add_artist_to_request_list = service.discover_music_for_request(request_id, artist_name)
@@ -153,6 +153,9 @@ def discover_top_tracks_for_artist_task(artist_id):
     return t['album']['id']
 
   tracks = service.discover_top_tracks_for_artist(artist_id)
+
+  # spotify's limit is 50 and we don't want to do multiple requests
+  tracks = [t for t in tracks if t['track_number'] <= 50]
 
   # python requires sorting prior to groups
   tracks = sorted(tracks, key=_get_album_id)

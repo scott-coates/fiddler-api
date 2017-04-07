@@ -11,6 +11,14 @@ class CreateArtist(DomainCommand):
     pass
 
 
+class RelateArtist(DomainCommand):
+  command_signal = CommandSignal()
+
+  @initializer
+  def __init__(self, artist_id, provider_type):
+    pass
+
+
 class AddAlbum(DomainCommand):
   command_signal = CommandSignal()
 

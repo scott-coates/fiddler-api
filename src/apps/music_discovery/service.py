@@ -10,10 +10,9 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_info, get_album_tracks, \
   get_track_external_id, \
   get_album_id, get_external_artist_id
-from src.apps.read_model.key_value.request.service import incr_artists_for_request
-from src.domain.artist.commands import CreateArtist, AddAlbum, AddTopTracksToArtist, AddTracksToAlbum
+from src.domain.artist.commands import CreateArtist, AddAlbum, AddTopTracksToArtist, AddTracksToAlbum, RelateArtist
 from src.domain.artist.entities import Artist
-from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError
+from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError, DuplicateRelatedArtistError
 from src.domain.common import constants
 from src.domain.request.commands import SubmitArtistToRequest
 from src.libs.common_domain import aggregate_repository
@@ -32,6 +31,14 @@ token = util.prompt_for_user_token(settings.SPOTIFY_PLAYLIST_USER_NAME, scope, s
 user_auth_sp = spotipy.Spotify(auth=token)
 
 network = pylast.LastFMNetwork(settings.LAST_FM_API_KEY, settings.LAST_FM_API_SECRET)
+
+
+def _relate_artists(root_artist_id, artist_id):
+  try:
+    ca = RelateArtist(artist_id, constants.SPOTIFY)
+    send_command(root_artist_id, ca)
+  except DuplicateRelatedArtistError:
+    pass
 
 
 def discover_music_for_request(request_id, root_artist_name):
@@ -56,6 +63,7 @@ def discover_music_for_request(request_id, root_artist_name):
       assert artist['name'].lower() == artist_name.lower()
 
       artist_id = create_artist_from_spotify_object(artist)
+      _relate_artists(root_artist_id, artist_id)
 
       albums = sp.artist_albums(artist['id'])['items']
 

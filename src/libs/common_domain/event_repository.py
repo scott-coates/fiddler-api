@@ -1,5 +1,6 @@
-from django.db import transaction
+from django.db import transaction, IntegrityError
 
+from src.libs.common_domain.errors import ConcurrencyViolationError
 from src.libs.common_domain.models import Event
 
 
@@ -29,7 +30,11 @@ def create_events(stream_id, starting_sequence, event_type, events):
       for i, e in enumerate(events, 1)
       ]
 
-    events = Event.objects.bulk_create(event_data)
+    try:
+      events = Event.objects.bulk_create(event_data)
+    except IntegrityError as e:
+      raise ConcurrencyViolationError(
+        'Could not save duplicate events for stream: {0}.'.format(stream_id)).with_traceback(e.__traceback__)
 
   return events
 

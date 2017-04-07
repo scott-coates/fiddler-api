@@ -6,7 +6,7 @@ from redis import Redis
 # delay_sec will be different for each instance of tiger
 from tasktiger.retry import fixed
 
-delay_sec = random.choice(range(5, 60))
+delay_sec = random.choice(range(5, 20))
 
 
 def job(**kwargs):
