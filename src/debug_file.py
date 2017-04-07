@@ -18,10 +18,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 artists = """
-tycho
-ratatat
+red city radio
+the menzingers
+iron chic
 """
 
 # artists = """

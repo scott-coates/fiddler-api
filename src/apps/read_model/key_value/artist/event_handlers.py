@@ -25,7 +25,7 @@ def execute_prospect_deleted_1(**kwargs):
   artist_id = kwargs['aggregate_id']
 
   album_id = event.data['id']
-  release_date = event.data['release_date']
+  release_date = str(event.data['release_date'])
   provider_type = event.data['provider_type']
   external_id = event.data['external_id']
   tasks.set_album_external_id_task.delay(album_id, release_date, provider_type, external_id)

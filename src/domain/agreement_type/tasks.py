@@ -10,7 +10,7 @@ from src.libs.python_utils.logging.logging_utils import log_wrapper
 logger = logging.getLogger(__name__)
 
 
-@job('high')
+@job(queue='high')
 def create_global_agreement_type_task(id, name, system_created_date):
   # check if already exists - idempotent
   try:
@@ -27,7 +27,7 @@ def create_global_agreement_type_task(id, name, system_created_date):
       return services.create_global_agreement_type(id, name, system_created_date).id
 
 
-@job('high')
+@job(queue='high')
 def create_user_agreement_type_task(id, name, user_id, system_created_date):
   # check if already exists - idempotent
   try:
@@ -44,7 +44,7 @@ def create_user_agreement_type_task(id, name, user_id, system_created_date):
       return services.create_user_agreement_type(id, name, user_id, system_created_date).id
 
 
-@job('high')
+@job(queue='high')
 def create_agreement_type_lookup_task(id, name):
   # check if already exists - idempotent
   try:

@@ -9,7 +9,7 @@ from src.libs.python_utils.logging.logging_utils import log_wrapper
 logger = logging.getLogger(__name__)
 
 
-@job('high')
+@job(queue='high')
 def create_asset_lookup_task(asset_id, name, path):
   # check if already exists - idempotent
   try:

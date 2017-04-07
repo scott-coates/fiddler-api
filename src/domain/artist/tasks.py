@@ -1,19 +1,19 @@
 import logging
 
 from django.core.exceptions import ObjectDoesNotExist
-from django_rq import job
 
+from src.domain.artist import service
 from src.domain.artist.commands import CreateArtist, SendAgreementAlerts
 from src.domain.artist.entities import Agreement
-from src.domain.artist import service
 from src.libs.common_domain import aggregate_repository
 from src.libs.common_domain import dispatcher
+from src.libs.job_utils.job_decorator import job
 from src.libs.python_utils.logging.logging_utils import log_wrapper
 
 logger = logging.getLogger(__name__)
 
 
-@job('high')
+@job(queue='high')
 def create_artist_task(_aggregate_repo=None, _dispatcher=None, **kwargs):
   if not _aggregate_repo: _aggregate_repo = aggregate_repository
   if not _dispatcher: _dispatcher = dispatcher
@@ -40,7 +40,7 @@ def create_artist_task(_aggregate_repo=None, _dispatcher=None, **kwargs):
 
       _dispatcher.send_command(agreement_id, create_agreement)
 
-@job('high')
+@job(queue='high')
 def send_alert_for_agreement_task(agreement_id, _dispatcher=None):
   if not _dispatcher: _dispatcher = dispatcher
   log_message = ("Send agreement alert task for id: %s", agreement_id)
@@ -51,7 +51,7 @@ def send_alert_for_agreement_task(agreement_id, _dispatcher=None):
     _dispatcher.send_command(agreement_id, send_alerts_command)
 
 
-@job('high')
+@job(queue='high')
 def save_agreement_alert_task(agreement_id,
                               outcome_alert_date, outcome_alert_enabled, outcome_alert_created,
                               outcome_notice_alert_date, outcome_notice_alert_enabled, outcome_notice_alert_created,
@@ -68,7 +68,7 @@ def save_agreement_alert_task(agreement_id,
                                         outcome_notice_alert_created).id
 
 
-@job('high')
+@job(queue='high')
 def save_agreement_search_task(agreement_id, user_id, name, counterparty, agreement_type_id):
   log_message = ("Save agreement_search task for agreement_id: %s", agreement_id)
 
@@ -76,7 +76,7 @@ def save_agreement_search_task(agreement_id, user_id, name, counterparty, agreem
     return service.save_agreement_search(agreement_id, user_id, name, counterparty, agreement_type_id).id
 
 
-@job('high')
+@job(queue='high')
 def delete_agreement_task(agreement_id):
   log_message = ("Delete agreement_search task for agreement_id: %s", agreement_id)
 

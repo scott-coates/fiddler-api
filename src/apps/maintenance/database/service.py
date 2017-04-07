@@ -14,8 +14,8 @@ def clear_read_model():
     read_model_type.model_class().objects.all().delete()
 
 
-def clear_rq_jobs():
+def clear_tiger_jobs():
   kdb = get_key_value_client()
-  read_model_keys = kdb.keys('rq:*')
+  read_model_keys = kdb.keys('t:*')
   for r in read_model_keys:
     kdb.delete(r)

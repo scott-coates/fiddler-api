@@ -10,7 +10,7 @@ from src.libs.python_utils.logging.logging_utils import log_wrapper
 logger = logging.getLogger(__name__)
 
 
-@job('default')
+@job(queue='default')
 def save_profile_lookup_by_provider_task(profile_id, external_id, provider_type, prospect_id):
   log_message = (
     "profile_id: %s, external_id: %s, provider_type: %s",
@@ -28,7 +28,7 @@ def save_profile_lookup_by_provider_task(profile_id, external_id, provider_type,
     return profile_id
 
 
-@job('default')
+@job(queue='default')
 def save_eo_lookup_by_provider_task(eo_id, external_id, provider_type, prospect_id):
   log_message = (
     "eo_id: %s, external_id: %s, provider_type: %s",
@@ -40,7 +40,7 @@ def save_eo_lookup_by_provider_task(eo_id, external_id, provider_type, prospect_
     return eo_id
 
 
-@job('default')
+@job(queue='default')
 def delete_prospect_task(prospect_id):
   log_message = (
     "prospect_id: %s",

@@ -1,7 +1,8 @@
 import logging
+import random
 from itertools import groupby
 
-from tasktiger import fixed
+from tasktiger import fixed, linear
 
 from src.apps.music_discovery import service
 from src.apps.read_model.key_value.request.service import incr_artists_for_request
@@ -127,7 +128,7 @@ def discover_music_for_request_task(request_id, artist_name):
   return add_artist_to_request_list
 
 
-@job(queue='high')
+@job(queue='high', extended_retry=True)
 def discover_tracks_for_album_task(album_id, artist_id):
   try:
     service.discover_tracks_for_album(album_id, artist_id)
@@ -135,18 +136,18 @@ def discover_tracks_for_album_task(album_id, artist_id):
     pass
 
 
-@job(queue='high')
+@job(queue='high', retry=True, retry_method=linear(5, 5, 10))
 def refresh_request_playlist_task(request_id):
   refresh = RefreshPlaylist()
   dispatcher.send_command(request_id, refresh)
 
 
-@job(queue='high')
+@job(queue='high', extended_retry=True)
 def update_playlist_with_tracks_task(playlist_id, track_ids, ):
   return service.update_playlist_with_tracks(playlist_id, track_ids)
 
 
-@job(queue='high')
+@job(queue='high', extended_retry=True)
 def discover_top_tracks_for_artist_task(artist_id):
   def _get_album_id(t):
     return t['album']['id']
@@ -167,7 +168,7 @@ def discover_top_tracks_for_artist_task(artist_id):
   add_artist_top_tracks_task.delay(artist_id, external_track_ids)
 
 
-@job(queue='high', retry=True, retry_method=fixed(2, 3))
+@job(queue='high', extended_retry=True)
 def add_artist_top_tracks_task(artist_id, external_track_ids, ):
   try:
     service.add_artist_top_tracks(artist_id, external_track_ids, )
@@ -175,6 +176,6 @@ def add_artist_top_tracks_task(artist_id, external_track_ids, ):
     pass
 
 
-@job(queue='high', retry_method=fixed(2, 3))
+@job(queue='high', extended_retry=True)
 def submit_artist_to_request_task(request_id, artist_id, root_artist_id, ):
   return service.submit_artist_to_request(request_id, artist_id, root_artist_id, )

@@ -8,7 +8,7 @@ from src.libs.python_utils.logging.logging_utils import log_wrapper
 logger = logging.getLogger(__name__)
 
 
-@job('high')
+@job(queue='high')
 def save_smart_view_in_firebase_task(smart_view_id, name, query, user_id):
   log_message = (
     "Save smart view in firebase. smart_view_id: %s", smart_view_id

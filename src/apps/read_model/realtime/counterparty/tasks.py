@@ -8,7 +8,7 @@ from src.libs.python_utils.logging.logging_utils import log_wrapper
 logger = logging.getLogger(__name__)
 
 
-@job('high')
+@job(queue='high')
 def save_counterparty_in_firebase_task(agreement_id, user_id, counterparty):
   log_message = (
     "Save counterparty in firebase. agreement_id: %s", agreement_id

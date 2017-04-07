@@ -152,6 +152,7 @@ LOCAL_APPS = (
 
   # LIBS
   'src.libs.common_domain',
+  'src.libs.job_utils',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
