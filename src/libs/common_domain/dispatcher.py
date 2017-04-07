@@ -16,7 +16,9 @@ def send_command(aggregate_id, command):
     try:
       command.__class__.command_signal.send(None, **command_data)
     except ConcurrencyViolationError:
-      logger.warn('Concurrency error for aggregate: %s. Command: %s.', aggregate_id, command)
+      logger.warn('Concurrency error for aggregate: %s. Command: %s. Attempt no. %s.', aggregate_id, command,
+                  command_counter)
+
       command_counter += 1
     else:
       # successful command, break the loop

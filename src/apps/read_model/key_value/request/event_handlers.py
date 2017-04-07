@@ -12,5 +12,6 @@ def album_promoted_1(**kwargs):
   event = kwargs['event']
 
   request_id = kwargs['aggregate_id']
+  artist_id = event.data['artist_id']
 
-  tasks.incr_artist_promoted_task.delay(request_id)
+  tasks.process_artist_request_task.delay(request_id, artist_id)

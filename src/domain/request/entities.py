@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 from itertools import groupby
 from operator import itemgetter
@@ -16,6 +17,8 @@ from src.domain.request.events import RequestSubmitted1, PlaylistCreatedForReque
   PlaylistRefreshedWithTracks1, ArtistPromotedToRequest1, ArtistSkippedByRequest1
 from src.domain.request.value_objects import SpotifyPlaylist
 from src.libs.common_domain.aggregate_base import AggregateBase
+
+logger = logging.getLogger(__name__)
 
 acceptable_age_threshold = timezone.now() - relativedelta(months=18)
 
@@ -59,8 +62,10 @@ class Request(AggregateBase):
     assert artist_id
     assert root_artist_id
 
-    # it's possible other request artists triggered this album to be processed already.
+    # this prevents the same root artist submitting the same potential artist
     if artist_id not in self._promoted_artists[root_artist_id]:
+      logger.debug('Proceeding to submit. artist_id: %s not already in promoted artist for root_artist: %s.', artist_id,
+                   root_artist_id)
 
       artist_albums = get_artist_albums(artist_id)
 
@@ -71,6 +76,9 @@ class Request(AggregateBase):
         self._raise_event(ArtistPromotedToRequest1(artist_id, root_artist_id))
       else:
         self._raise_event(ArtistSkippedByRequest1(artist_id, root_artist_id))
+    else:
+      logger.debug('Skipping artist_id: %s already in promoted artist for root_artist: %s.', artist_id,
+                   root_artist_id)
 
   def refresh_playlist(self):
     if self.playlist.track_ids: raise InvalidRequestError('playlist already refreshed')

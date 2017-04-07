@@ -47,6 +47,7 @@ def discover_music_for_request(request_id, root_artist_name):
   root_artist = get_sp_artist_by_name(root_artist_name)
   root_artist_id = create_artist_from_spotify_object(root_artist)
 
+  similar_artists = lfm_artist.get_similar(5)
   similar_artists = lfm_artist.get_similar(100)
 
   similar_artist_names = [a.item.name for a in similar_artists]
@@ -81,7 +82,7 @@ def discover_music_for_request(request_id, root_artist_name):
       # this artist isn't in spotify but is in last fm
       pass
     except:
-      logger.exception('discover music for %s. similar: %s', artist_name, artist_name)
+      logger.exception('discover music for %s. similar: %s', root_artist_name, artist_name)
 
   return add_artist_to_request_list
 

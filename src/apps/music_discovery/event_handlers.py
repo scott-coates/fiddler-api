@@ -4,7 +4,7 @@ import webbrowser
 from django.dispatch import receiver
 
 from src.apps.music_discovery import tasks
-from src.apps.read_model.key_value.request.service import incr_artist_promoted
+from src.apps.read_model.key_value.request.service import process_artist_request
 from src.domain.request.events import RequestSubmitted1, PlaylistRefreshedWithTracks1, ArtistPromotedToRequest1, \
   PlaylistCreatedForRequest
 from src.libs.common_domain.decorators import event_idempotent

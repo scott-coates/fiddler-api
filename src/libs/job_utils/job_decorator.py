@@ -7,6 +7,7 @@ from redis import Redis
 from tasktiger.retry import fixed
 
 delay_sec = random.choice(range(5, 20))
+retries = 5
 
 
 def job(**kwargs):
@@ -17,7 +18,7 @@ def job(**kwargs):
     extended_retry = kwargs.pop('extended_retry', None)
     if extended_retry:
       kwargs['retry'] = True
-      kwargs['retry_method'] = fixed(delay_sec, 50)
+      kwargs['retry_method'] = fixed(delay_sec, retries)
 
     return tiger.task(**kwargs)(func)
 

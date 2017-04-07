@@ -36,9 +36,9 @@ def refresh_album_request(_aggregate_repository=None, **kwargs):
 
   ag = _aggregate_repository.get(Request, kwargs['aggregate_id'])
 
+  if not ag.playlist.track_ids:
+    version = ag.version
 
-  version = ag.version
+    ag.refresh_playlist()
 
-  ag.refresh_playlist()
-
-  _aggregate_repository.save(ag, version)
+    _aggregate_repository.save(ag, version)

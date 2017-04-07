@@ -5,11 +5,12 @@ from itertools import groupby
 from tasktiger import fixed, linear
 
 from src.apps.music_discovery import service
-from src.apps.read_model.key_value.request.service import incr_artists_for_request
+from src.apps.read_model.key_value.request.service import provide_journal_artists_for_request
 from src.domain.artist.errors import TopTracksExistError, DuplicateTrackError
 from src.domain.request.commands import RefreshPlaylist
 from src.libs.common_domain import dispatcher
 from src.libs.job_utils.job_decorator import job
+from src.libs.python_utils.logging.logging_utils import log_wrapper
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +115,7 @@ logger = logging.getLogger(__name__)
 #   with log_wrapper(logger.info, *log_message):
 #     return services.delete_agreement(agreement_id)
 
-#todo move to spotify queue but make sure in correct domain first
+# todo move to spotify queue but make sure in correct domain first
 @job(queue='high')
 def discover_music_for_request_task(request_id, artist_name):
   add_artist_to_request_list = service.discover_music_for_request(request_id, artist_name)
@@ -122,8 +123,8 @@ def discover_music_for_request_task(request_id, artist_name):
   for artist_item in add_artist_to_request_list:
     submit_artist_to_request_task.delay(artist_item[0], artist_item[1], artist_item[2])
 
-  artists_to_add = len(add_artist_to_request_list)
-  incr_artists_for_request(request_id, artists_to_add)
+  artist_ids_to_add = [a[1] for a in add_artist_to_request_list]
+  provide_journal_artists_for_request(request_id, artist_ids_to_add)
 
   return add_artist_to_request_list
 
@@ -181,4 +182,8 @@ def add_artist_top_tracks_task(artist_id, external_track_ids, ):
 
 @job(queue='high', extended_retry=True)
 def submit_artist_to_request_task(request_id, artist_id, root_artist_id, ):
-  return service.submit_artist_to_request(request_id, artist_id, root_artist_id, )
+  log_message = (
+    "submit artist to request. request id: %s. artist_id: %s. root_artist_id: %s", request_id, artist_id,
+    root_artist_id)
+  with log_wrapper(logger.debug, *log_message):
+    return service.submit_artist_to_request(request_id, artist_id, root_artist_id, )
