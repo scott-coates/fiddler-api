@@ -12,17 +12,22 @@ def send_command(aggregate_id, command):
   command_counter = 1
   command_data = {'aggregate_id': aggregate_id, 'command': command}
 
-  while command_counter < command_try_times:
+  error = None
+
+  while command_counter <= command_try_times:
     try:
       command.__class__.command_signal.send(None, **command_data)
-    except ConcurrencyViolationError:
-      logger.warn('Concurrency error for aggregate: %s. Command: %s. Attempt no. %s.', aggregate_id, command,
+    except ConcurrencyViolationError as e:
+      logger.info('Concurrency error for aggregate: %s. Command: %s. Attempt no. %s.', aggregate_id, command,
                   command_counter)
-
+      error = e
       command_counter += 1
     else:
       # successful command, break the loop
+      error = None
       break
+
+  if error: raise error
 
 
 def publish_event(aggregate_id, event, version, allow_non_idempotent, send_to_app_names):
