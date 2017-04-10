@@ -1,10 +1,10 @@
 import random
 
 import tasktiger
-from redis import Redis
-
 # delay_sec will be different for each instance of tiger
 from tasktiger.retry import fixed
+
+from src.libs.key_value_utils.key_value_provider import get_key_value_client
 
 delay_sec = random.choice(range(5, 20))
 retries = 5
@@ -12,7 +12,8 @@ retries = 5
 
 def job(**kwargs):
   def _wrap(func):
-    conn = Redis(db=2, decode_responses=True)
+    conn = get_key_value_client()
+
     tiger = tasktiger.TaskTiger(connection=conn)
 
     extended_retry = kwargs.pop('extended_retry', None)

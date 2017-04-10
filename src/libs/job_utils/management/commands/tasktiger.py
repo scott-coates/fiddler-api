@@ -3,7 +3,8 @@ import sys
 
 import tasktiger
 from django.core.management.base import BaseCommand
-from redis import Redis
+
+from src.libs.key_value_utils.key_value_provider import get_key_value_client
 
 
 class Command(BaseCommand):
@@ -24,7 +25,7 @@ class Command(BaseCommand):
       os.environ.setdefault('LC_ALL', 'en_US.utf-8')
       os.environ.setdefault('LANG', 'en_US.utf-8')
 
-      conn = Redis(db=2, decode_responses=True)
+      conn = get_key_value_client()
       tiger = tasktiger.TaskTiger(connection=conn, setup_structlog=True)
       tiger.run_worker_with_args(sys.argv[2:])
       sys.exit(0)

@@ -27,9 +27,6 @@ def get_unique_artist_id(provider_type, external_id):
 
   ret_val = kdb.get(get_read_model_name('artist_unique_id:{0}:{1}', provider_type, external_id))
 
-  if ret_val:
-    ret_val = ret_val.decode()
-
   return ret_val
 
 
@@ -46,9 +43,6 @@ def get_external_artist_id(artist_id, provider_type):
 
   ret_val = kdb.get(get_read_model_name('artist_external_id:{0}:{1}', artist_id, provider_type))
 
-  if ret_val:
-    ret_val = ret_val.decode()
-
   return ret_val
 
 
@@ -56,9 +50,6 @@ def get_album_id(provider_type, external_id):
   kdb = get_key_value_client()
 
   ret_val = kdb.get(get_read_model_name('album_external_id:{0}:{1}', provider_type, external_id))
-
-  if ret_val:
-    ret_val = ret_val.decode()
 
   return ret_val
 
@@ -86,7 +77,6 @@ def get_album_info(album_id):
   ret_val = kdb.hgetall(get_read_model_name('album_info:{0}', album_id))
 
   if ret_val:
-    ret_val = dict(map(lambda m: (m[0].decode(), m[1].decode()), ret_val.items()))
     ret_val['release_date'] = get_datetime(ret_val['release_date'])
 
   return ret_val
@@ -105,9 +95,6 @@ def get_artist_albums(artist_id):
 
   ret_val = kdb.smembers(get_read_model_name('artist_album_info:{0}', artist_id))
 
-  if ret_val:
-    ret_val = list(map(lambda m: m.decode(), ret_val))
-
   return ret_val
 
 
@@ -125,21 +112,17 @@ def get_track_external_id(track_id):
 
   ret_val = kdb.hgetall(get_read_model_name('track_external_info:{0}', track_id))
 
-  if ret_val:
-    ret_val = dict(map(lambda m: (m[0].decode(), m[1].decode()), ret_val.items()))
-
   return ret_val
 
 
 def add_track_to_album(album_id, track_data):
   kdb = get_key_value_client()
-  ret_val = None
 
-  existing_tracks = list(map(lambda m: m.decode(), kdb.smembers(get_read_model_name('album_tracks_ids:{0}', album_id))))
+  ret_val = kdb.smembers(get_read_model_name('album_tracks_ids:{0}', album_id))
 
   track_id = track_data['id']
 
-  if track_id not in existing_tracks:
+  if track_id not in ret_val:
     payload = json.dumps(track_data)
     ret_val = kdb.lpush(get_read_model_name('album_track_info:{0}', album_id), payload)
 
@@ -154,7 +137,6 @@ def get_album_tracks(album_id):
   ret_val = kdb.lrange(get_read_model_name('album_track_info:{0}', album_id), 0, -1) or None
 
   if ret_val:
-    ret_val = [json.loads(x.decode()) for x in ret_val]
     ret_val = {'id': album_id, 'tracks': ret_val}
 
   return ret_val
@@ -235,7 +217,6 @@ def get_artist_info(artist_id):
   ret_val = kdb.hgetall(get_read_model_name('artist_info:{0}', artist_id))
 
   if ret_val:
-    ret_val = dict(map(lambda m: (m[0].decode(), m[1].decode()), ret_val.items()))
     ret_val = {
       'id': artist_id,
       'genres': set(ast.literal_eval(ret_val['genres'])),

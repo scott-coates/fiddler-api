@@ -264,4 +264,3 @@ class Auth0Backend(object):
     """
     return AuthUser.objects.get()
     return UserModel._default_manager.get(pk=user_id)
-

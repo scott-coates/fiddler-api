@@ -38,6 +38,11 @@ CACHES = {
   'default': {
     'BACKEND': 'django_redis.cache.RedisCache',
     'LOCATION': os.environ['REDISCLOUD_URL'],
+    'OPTIONS': {
+      'CONNECTION_POOL_KWARGS': {
+        "decode_responses": True,
+      }
+    },
   }
 }
 ########## END CACHE CONFIGURATION

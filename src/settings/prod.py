@@ -8,7 +8,6 @@ from src.libs.text_utils.encoding.encoding_utils import base64decode
 from src.libs.text_utils.text_parser import str2bool
 from .common import *
 
-
 ########## DEBUG CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#debug
 DEBUG = False
@@ -37,6 +36,11 @@ CACHES = {
   'default': {
     'BACKEND': 'django_redis.cache.RedisCache',
     'LOCATION': os.environ['REDISCLOUD_URL'],
+    'OPTIONS': {
+      'CONNECTION_POOL_KWARGS': {
+        "decode_responses": True,
+      }
+    },
   }
 }
 ########## END CACHE CONFIGURATION

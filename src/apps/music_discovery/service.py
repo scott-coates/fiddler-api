@@ -9,7 +9,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_info, get_album_tracks, \
   get_track_external_id, \
-  get_album_id, get_external_artist_id
+  get_album_id, get_external_artist_id, get_artist_info
 from src.domain.artist.commands import CreateArtist, AddAlbum, AddTopTracksToArtist, AddTracksToAlbum, RelateArtist
 from src.domain.artist.entities import Artist
 from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError, DuplicateRelatedArtistError
@@ -201,3 +201,12 @@ def add_artist_top_tracks(artist_id, external_track_ids):
   track_ids = [ag._get_track_by_external_id(t).id for t in external_track_ids]
   at = AddTopTracksToArtist(track_ids)
   send_command(artist_id, at)
+
+
+def get_artist_top_track_data(artist_external_id):
+  internal_artist_id = get_unique_artist_id(constants.SPOTIFY, artist_external_id)
+  if internal_artist_id:
+    artist_info = get_artist_info(internal_artist_id)
+    print(artist_info['top_tracks'])
+  else:
+    pass

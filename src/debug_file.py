@@ -19,8 +19,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 artists = """
-civil war rust
-makewar
+alessia cara
 """
 
 # artists = """

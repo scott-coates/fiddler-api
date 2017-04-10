@@ -58,6 +58,11 @@ CACHES = {
   'default': {
     'BACKEND': 'django_redis.cache.RedisCache',
     'LOCATION': 'localhost:6379?db=0',
+    'OPTIONS': {
+      'CONNECTION_POOL_KWARGS': {
+        "decode_responses": True,
+      }
+    },
   }
 }
 ########## END CACHE CONFIGURATION
