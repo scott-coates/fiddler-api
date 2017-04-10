@@ -34,17 +34,7 @@ CONN_MAX_AGE = 60
 ########## END DATABASE CONFIGURATION
 
 ########## CACHE CONFIGURATION
-CACHES = {
-  'default': {
-    'BACKEND': 'django_redis.cache.RedisCache',
-    'LOCATION': os.environ['REDISCLOUD_URL'],
-    'OPTIONS': {
-      'CONNECTION_POOL_KWARGS': {
-        "decode_responses": True,
-      }
-    },
-  }
-}
+CACHES['default']['LOCATION'] = os.environ['REDISCLOUD_URL']
 ########## END CACHE CONFIGURATION
 
 ########## LOGGING CONFIGURATION

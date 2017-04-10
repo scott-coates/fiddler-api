@@ -54,17 +54,7 @@ DATABASES = {
 
 ########## CACHE CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#caches
-CACHES = {
-  'default': {
-    'BACKEND': 'django_redis.cache.RedisCache',
-    'LOCATION': 'localhost:6379?db=0',
-    'OPTIONS': {
-      'CONNECTION_POOL_KWARGS': {
-        "decode_responses": True,
-      }
-    },
-  }
-}
+CACHES['default']['LOCATION'] = 'localhost:6379?db=0'
 ########## END CACHE CONFIGURATION
 
 ########## LOGGING CONFIGURATION

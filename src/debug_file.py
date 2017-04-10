@@ -19,7 +19,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 artists = """
-alessia cara
+iron chic
 """
 
 # artists = """

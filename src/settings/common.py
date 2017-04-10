@@ -195,6 +195,22 @@ AUTH_PASSWORD_VALIDATORS = []
 HTTP_TIMEOUT = 10  # seconds
 ########## END EXTERNAL API CONFIGURATION
 
+########## CACHE CONFIGURATION
+# See: https://docs.djangoproject.com/en/dev/ref/settings/#caches
+CACHES = {
+  'default': {
+    'BACKEND': 'django_redis.cache.RedisCache',
+    'LOCATION': None,  # ENV-Specific
+    'OPTIONS': {
+      "REDIS_CLIENT_CLASS": "redis.client.Redis",
+      'CONNECTION_POOL_KWARGS': {
+        "decode_responses": True,
+      }
+    },
+  }
+}
+########## END CACHE CONFIGURATION
+
 ########### REDIS QUEUE CONFIGURATION
 # The actual config of the redis cache location is env-specific. However, the queues themselves are app specific.
 # Within our app, we'll decide whether to use high, default, low.
