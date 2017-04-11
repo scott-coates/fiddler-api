@@ -54,6 +54,23 @@ def execute_track_1(**kwargs):
 
 
 @event_idempotent
+@receiver(TrackAddedToAlbum1.event_signal)
+def execute_track_added_1(**kwargs):
+  event = kwargs['event']
+
+  id = event.data['id']
+  name = event.data['name']
+  features = event.data['features']
+  provider_type = event.data['provider_type']
+  external_id = event.data['external_id']
+
+  track_data = {'name': name, 'features': features, 'provider_type': provider_type,
+                'external_id': external_id}
+
+  tasks.save_track_info_task.delay(id, track_data)
+
+
+@event_idempotent
 @receiver(TopTracksRefreshed1.event_signal)
 def refreshed_top_tracks_1(**kwargs):
   event = kwargs['event']

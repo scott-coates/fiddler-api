@@ -9,16 +9,17 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_info, get_album_tracks, \
   get_track_external_id, \
-  get_album_id, get_external_artist_id, get_artist_info
+  get_album_id, get_external_artist_id, get_artist_info, get_track_info
 from src.domain.artist.commands import CreateArtist, AddAlbum, AddTopTracksToArtist, AddTracksToAlbum, RelateArtist
 from src.domain.artist.entities import Artist
-from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError, DuplicateRelatedArtistError
+from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError, InvalidRelatedArtistError
 from src.domain.common import constants
 from src.domain.request.commands import SubmitArtistToRequest
 from src.libs.common_domain import aggregate_repository
 from src.libs.common_domain.dispatcher import send_command
 from src.libs.datetime_utils.datetime_parser import get_datetime
 from src.libs.python_utils.id.id_utils import generate_id
+from src.libs.spotify_utils.spotify_service import get_spotify_id
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ def _relate_artists(root_artist_id, artist_id):
   try:
     ca = RelateArtist(artist_id, constants.SPOTIFY)
     send_command(root_artist_id, ca)
-  except DuplicateRelatedArtistError:
+  except InvalidRelatedArtistError:
     pass
 
 
@@ -204,9 +205,13 @@ def add_artist_top_tracks(artist_id, external_track_ids):
 
 
 def get_artist_top_track_data(artist_external_id):
-  internal_artist_id = get_unique_artist_id(constants.SPOTIFY, artist_external_id)
+  artist_id = get_spotify_id(artist_external_id)
+
+  internal_artist_id = get_unique_artist_id(constants.SPOTIFY, artist_id)
   if internal_artist_id:
     artist_info = get_artist_info(internal_artist_id)
-    print(artist_info['top_tracks'])
+    top_tracks = artist_info['top_tracks']
+    top_track_data = [get_track_info(top_track['track_id']) for top_track in top_tracks]
+
   else:
     pass

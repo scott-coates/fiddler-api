@@ -49,6 +49,11 @@ def add_track_to_album_task(album_id, track_data):
 
 
 @job(queue='high')
+def save_track_info_task(track_id, track_data):
+  return service.save_track_info(track_id, track_data)
+
+
+@job(queue='high')
 def set_track_external_id_task(track_id, provider_type, external_id):
   return service.set_track_external_id(track_id, provider_type, external_id)
 

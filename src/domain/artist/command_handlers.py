@@ -30,15 +30,18 @@ def relate(_aggregate_repository=None, **kwargs):
   if not _aggregate_repository: _aggregate_repository = aggregate_repository
   command = kwargs['command']
 
-  ag = _aggregate_repository.get(Artist, kwargs['aggregate_id'])
+  aggregate_id = kwargs['aggregate_id']
   artist_id = command.data['artist_id']
 
-  if artist_id not in ag._related_artists:
-    version = ag.version
+  if artist_id != aggregate_id:
+    ag = _aggregate_repository.get(Artist, aggregate_id)
 
-    ag.relate_similar_artist(**command.data)
+    if artist_id not in ag._related_artists:
+      version = ag.version
 
-    _aggregate_repository.save(ag, version)
+      ag.relate_similar_artist(**command.data)
+
+      _aggregate_repository.save(ag, version)
 
 
 @receiver(AddAlbum.command_signal)

@@ -1,4 +1,3 @@
-import ast
 import json
 
 from src.apps.read_model.key_value.common import get_read_model_name
@@ -196,7 +195,8 @@ def get_album_tracks(album_id):
 #   return ret_val
 def save_artist_info(artist_id, genres, popularity):
   kdb = get_key_value_client()
-  data = {'genres': genres, 'popularity': popularity}
+  genres_json = json.dumps(genres)
+  data = {'genres': genres_json, 'popularity': popularity}
 
   ret_val = kdb.hmset(get_read_model_name('artist_info:{0}', artist_id), data)
 
@@ -206,7 +206,8 @@ def save_artist_info(artist_id, genres, popularity):
 def save_artist_top_tracks(artist_id, track_data):
   kdb = get_key_value_client()
 
-  ret_val = kdb.hset(get_read_model_name('artist_info:{0}', artist_id), 'top_tracks', track_data)
+  tracks_json = json.dumps(track_data)
+  ret_val = kdb.hset(get_read_model_name('artist_info:{0}', artist_id), 'top_tracks', tracks_json)
 
   return ret_val
 
@@ -219,9 +220,29 @@ def get_artist_info(artist_id):
   if ret_val:
     ret_val = {
       'id': artist_id,
-      'genres': set(ast.literal_eval(ret_val['genres'])),
-      'top_tracks': ast.literal_eval(ret_val['top_tracks']),
+      'genres': set(json.loads(ret_val['genres'])),
+      'top_tracks': json.loads(ret_val['top_tracks']),
       'popularity': int(ret_val['popularity'])
     }
+
+  return ret_val
+
+
+def save_track_info(track_id, track_data):
+  kdb = get_key_value_client()
+
+  track_data_copy = track_data.copy()
+  track_data_copy['features'] = json.dumps(track_data_copy['features'])
+
+  ret_val = kdb.hmset(get_read_model_name('track_info:{0}', track_id), track_data_copy)
+
+  return ret_val
+
+
+def get_track_info(track_id):
+  kdb = get_key_value_client()
+
+  ret_val = kdb.hgetall(get_read_model_name('track_info:{0}', track_id))
+  ret_val['features'] = json.loads(ret_val['features'])
 
   return ret_val

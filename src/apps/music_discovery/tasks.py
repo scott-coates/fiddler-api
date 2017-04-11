@@ -169,6 +169,7 @@ def discover_top_tracks_for_artist_task(artist_id):
     discover_tracks_for_album_task.delay(album_id, artist_id)
 
   external_track_ids = [t['id'] for t in tracks]
+  # todo have this job depend on the last `discover_tracks_for_album_task` from the loop above
   add_artist_top_tracks_task.delay(artist_id, external_track_ids)
 
 

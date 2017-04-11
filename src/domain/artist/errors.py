@@ -2,7 +2,7 @@ class DuplicateArtistError(Exception):
   """Some kind of problem with charging a payment."""
   pass
 
-class DuplicateRelatedArtistError(Exception):
+class InvalidRelatedArtistError(Exception):
   """Some kind of problem with charging a payment."""
   pass
 

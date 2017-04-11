@@ -1,7 +1,7 @@
 from itertools import chain
 
 from src.domain.artist.errors import DuplicateAlbumError, DuplicateTrackError, TopTracksExistError, \
-  DuplicateRelatedArtistError
+  InvalidRelatedArtistError
 from src.domain.artist.events import ArtistCreated1, AlbumAddedToArtist1, TrackAddedToAlbum1, TopTracksRefreshed1, \
   ArtistRelatedToAnotherArtist1
 from src.libs.common_domain.aggregate_base import AggregateBase
@@ -63,7 +63,8 @@ class Artist(AggregateBase):
     self._raise_event(TopTracksRefreshed1(track_data))
 
   def relate_similar_artist(self, artist_id, provider_type):
-    if artist_id in self._related_artists: raise DuplicateRelatedArtistError('artist already related.', artist_id)
+    if artist_id == self.id: raise InvalidRelatedArtistError('artist cannot be related to itself.', artist_id)
+    if artist_id in self._related_artists: raise InvalidRelatedArtistError('artist already related.', artist_id)
 
     self._raise_event(ArtistRelatedToAnotherArtist1(artist_id, provider_type))
 

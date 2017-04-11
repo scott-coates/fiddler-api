@@ -19,14 +19,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 artists = """
-iron chic
+civil war rust
+makewar
 """
-
-# artists = """
-# Against Me!
-# Pussy Riot
-# Saul Williams
-# """
 
 artists = list(filter(bool, artists.split('\n')))
 
