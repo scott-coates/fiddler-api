@@ -28,9 +28,9 @@ logger = logging.getLogger(__name__)
 #     service.save_recent_prospect_discovery_network_connections_from_eo(eo_attrs, provider_type, prospect_id)
 
 @job(queue='high')
-def set_album_external_id_task(album_id, release_date, provider_type, external_id):
+def set_album_external_id_task(album_id, name, popularity, release_date, provider_type, external_id):
   release_date = get_datetime(release_date)
-  return service.set_album_info(album_id, release_date, provider_type, external_id)
+  return service.set_album_info(album_id, name, popularity, release_date, provider_type, external_id)
 
 
 @job(queue='high')

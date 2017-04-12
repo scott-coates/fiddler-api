@@ -19,8 +19,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 artists = """
-civil war rust
-makewar
+a wilhelm scream
 """
 
 artists = list(filter(bool, artists.split('\n')))

@@ -99,7 +99,7 @@ class Artist(AggregateBase):
     self.genres = event.genres
 
   def _handle_album_added_1_event(self, event):
-    self._albums.append(Album(event.id, event.name, event.external_id, self.id))
+    self._albums.append(Album(event.id, event.name, event.popularity, event.external_id, self.id))
 
   def _handle_track_added_1_event(self, event):
     album = self._get_album_by_id(event.album_id)
@@ -116,7 +116,7 @@ class Artist(AggregateBase):
 
 
 class Album:
-  def __init__(self, id, name, external_id, artist_id):
+  def __init__(self, id, name, popularity, external_id, artist_id):
     if not id:
       raise TypeError("id is required")
 
@@ -128,6 +128,7 @@ class Album:
 
     self.id = id
     self.name = name
+    self.popularity = popularity
     self.external_id = external_id
 
     self._tracks = []

@@ -25,10 +25,12 @@ def execute_prospect_deleted_1(**kwargs):
   artist_id = kwargs['aggregate_id']
 
   album_id = event.data['id']
+  name = event.data['name']
+  popularity = event.data['popularity']
   release_date = str(event.data['release_date'])
   provider_type = event.data['provider_type']
   external_id = event.data['external_id']
-  tasks.set_album_external_id_task.delay(album_id, release_date, provider_type, external_id)
+  tasks.set_album_external_id_task.delay(album_id, name, popularity, release_date, provider_type, external_id)
   tasks.set_album_id_task.delay(album_id, provider_type, external_id)
   tasks.add_album_to_artist_task.delay(album_id, artist_id)
 
@@ -40,13 +42,14 @@ def execute_track_1(**kwargs):
 
   id = event.data['id']
   name = event.data['name']
+  popularity = event.data['popularity']
   features = event.data['features']
   provider_type = event.data['provider_type']
   external_id = event.data['external_id']
 
   album_id = event.data['album_id']
 
-  track_data = {'id': id, 'name': name, 'features': features, 'provider_type': provider_type,
+  track_data = {'id': id, 'name': name, 'popularity': popularity, 'features': features, 'provider_type': provider_type,
                 'external_id': external_id}
 
   tasks.add_track_to_album_task.delay(album_id, track_data)
@@ -56,6 +59,8 @@ def execute_track_1(**kwargs):
 @event_idempotent
 @receiver(TrackAddedToAlbum1.event_signal)
 def execute_track_added_1(**kwargs):
+  # todo still needed?
+  # include popularity - like ablum -> track data does
   event = kwargs['event']
 
   id = event.data['id']

@@ -1,11 +1,14 @@
 import logging
 import random
+from itertools import groupby
+from operator import itemgetter
 
 import pylast
 import spotipy
 import spotipy.util as util
 from django.conf import settings
 from spotipy.oauth2 import SpotifyClientCredentials
+from tabulate import tabulate
 
 from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_info, get_album_tracks, \
   get_track_external_id, \
@@ -49,7 +52,8 @@ def discover_music_for_request(request_id, root_artist_name):
   root_artist_id = create_artist_from_spotify_object(root_artist)
 
   similar_artists = lfm_artist.get_similar(5)
-  similar_artists = lfm_artist.get_similar(100)
+  similar_artists = lfm_artist.get_similar(25)
+  # similar_artists = lfm_artist.get_similar(100)
 
   similar_artist_names = [a.item.name for a in similar_artists]
   all_artists_names = [lfm_artist.get_name()] + similar_artist_names
@@ -90,7 +94,7 @@ def discover_music_for_request(request_id, root_artist_name):
 
 def create_album_from_spotify_object(sp_album, artist_id, ):
   release_date = get_datetime(sp_album['release_date'])
-  album = _create_album(sp_album['name'], release_date, constants.SPOTIFY, sp_album['id'],
+  album = _create_album(sp_album['name'], sp_album['popularity'], release_date, constants.SPOTIFY, sp_album['id'],
                         artist_id)
 
   return album, release_date
@@ -172,10 +176,10 @@ def _create_artist(name, genres, popularity, provider_type, external_id):
   return artist_id
 
 
-def _create_album(name, release_date, provider_type, external_id, artist_id):
+def _create_album(name, popularity, release_date, provider_type, external_id, artist_id):
   try:
     album_id = generate_id()
-    ca = AddAlbum(album_id, name, release_date, provider_type, external_id)
+    ca = AddAlbum(album_id, name, popularity, release_date, provider_type, external_id)
     send_command(artist_id, ca)
   except DuplicateAlbumError:
     ag = aggregate_repository.get(Artist, artist_id)
@@ -204,14 +208,44 @@ def add_artist_top_tracks(artist_id, external_track_ids):
   send_command(artist_id, at)
 
 
-def get_artist_top_track_data(artist_external_id):
-  artist_id = get_spotify_id(artist_external_id)
+def get_artist_top_track_albums_data(artist_external_id):
+  ret_val = []
 
-  internal_artist_id = get_unique_artist_id(constants.SPOTIFY, artist_id)
+  album_properties = ('name', 'popularity', 'release_date')
+  feature_properties = (
+    'danceability', 'energy', 'loudness', 'speechiness',
+    'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo'
+  )
+
+  internal_artist_id = get_unique_artist_id(constants.SPOTIFY, artist_external_id)
   if internal_artist_id:
     artist_info = get_artist_info(internal_artist_id)
     top_tracks = artist_info['top_tracks']
-    top_track_data = [get_track_info(top_track['track_id']) for top_track in top_tracks]
+    top_tracks = sorted(top_tracks, key=_get_album_id_from_track_obj)
+    top_tracks = [(k, list(v)) for k, v in groupby(top_tracks, key=_get_album_id_from_track_obj)]
+    top_track_albums_dict = dict(top_tracks)
 
+    album_data = [get_album_info(a[0]) for a in top_tracks]
+    album_data = list(sorted(album_data, key=itemgetter('release_date')))
+    for album in album_data:
+      album_info = {k: v for k, v in album.items() if k in album_properties}
+      album_info = {'album': album_info}
+      album_info['tracks'] = []
+      ret_val.append(album_info)
+      album_tracks = get_album_tracks(album['id'])
+      tracks = top_track_albums_dict[album['id']]
+      for t in tracks:
+        track_info = next(tid for tid in album_tracks['tracks'] if tid['id'] == t['track_id'])
+        features = track_info['features']
+        track_data = {'name': track_info['name'], 'popularity': track_info['popularity']}
+        track_features = {k: v for k, v in features.items() if k in feature_properties}
+        track_data.update(track_features)
+        album_info['tracks'].append(track_data)
   else:
     pass
+
+  return ret_val
+
+
+def _get_album_id_from_track_obj(track):
+  return track['album_id']

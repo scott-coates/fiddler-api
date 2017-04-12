@@ -61,9 +61,12 @@ def set_album_id(album_id, provider_type, external_id):
   return ret_val
 
 
-def set_album_info(album_id, release_date, provider_type, external_id):
+def set_album_info(album_id, name, popularity, release_date, provider_type, external_id):
   kdb = get_key_value_client()
-  data = {'release_date': release_date, 'provider_type': provider_type, 'external_id': external_id}
+  data = {
+    'name': name, 'popularity': popularity,
+    'release_date': release_date, 'provider_type': provider_type, 'external_id': external_id
+  }
 
   ret_val = kdb.hmset(get_read_model_name('album_info:{0}', album_id), data)
 
@@ -77,6 +80,7 @@ def get_album_info(album_id):
 
   if ret_val:
     ret_val['release_date'] = get_datetime(ret_val['release_date'])
+    ret_val['id'] = album_id
 
   return ret_val
 
@@ -136,6 +140,7 @@ def get_album_tracks(album_id):
   ret_val = kdb.lrange(get_read_model_name('album_track_info:{0}', album_id), 0, -1) or None
 
   if ret_val:
+    ret_val = [json.loads(r) for r in ret_val]
     ret_val = {'id': album_id, 'tracks': ret_val}
 
   return ret_val
@@ -239,10 +244,12 @@ def save_track_info(track_id, track_data):
   return ret_val
 
 
+# todo still needed?
 def get_track_info(track_id):
   kdb = get_key_value_client()
 
   ret_val = kdb.hgetall(get_read_model_name('track_info:{0}', track_id))
   ret_val['features'] = json.loads(ret_val['features'])
+  ret_val['id'] = track_id
 
   return ret_val
