@@ -10,7 +10,7 @@ import random
 
 from src.apps.music_discovery.service import create_playlist
 from src.apps.read_model.key_value.artist.service import get_artist_info, get_artist_albums, get_album_tracks, \
-  get_album_info
+  get_album_info, get_track_info
 from src.domain.common import constants
 from src.domain.request.errors import DuplicateAlbumInRequestError, InvalidRequestError
 from src.domain.request.events import RequestSubmitted1, PlaylistCreatedForRequest, \
@@ -80,6 +80,8 @@ class Request(AggregateBase):
       logger.debug('Skipping artist_id: %s already in promoted artist for root_artist: %s.', artist_id,
                    root_artist_id)
 
+  _track_features = ['acousticness', 'danceability', 'energy', 'liveness', 'loudness', 'speechiness']
+
   def refresh_playlist(self):
     if self.playlist.track_ids: raise InvalidRequestError('playlist already refreshed')
 
@@ -95,6 +97,12 @@ class Request(AggregateBase):
       promoted_artists_data = []
 
       root_artist_data = get_artist_info(root_artist_id)
+      root_artist_top_track_data = [get_track_info(t['track_id']) for t in root_artist_data['top_tracks']]
+      root_artist_top_track_feature_d = defaultdict(list)
+      for top_track_data in root_artist_top_track_data:
+        features = top_track_data['features']
+        for tf in self._track_features:
+          root_artist_top_track_feature_d[tf].append(features[tf])
       root_artist_genres = root_artist_data['genres']
 
       for promoted_artist_id in promoted_artist_ids:
