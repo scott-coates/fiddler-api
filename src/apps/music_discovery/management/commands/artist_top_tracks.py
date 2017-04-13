@@ -12,6 +12,7 @@ class Command(BaseCommand):
   def handle(self, *args, **options):
     for spotify_artist_id in options['external_ids']:
       external_artist_id = get_spotify_id(spotify_artist_id)
+
       top_track_albums_data = get_artist_top_track_albums_data(external_artist_id)
       for top_track_album in top_track_albums_data:
         album_data = top_track_album['album']
