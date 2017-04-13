@@ -15,6 +15,6 @@ class Command(BaseCommand):
     for spotify_track_id in options['external_ids']:
       external_track_id = get_spotify_id(spotify_track_id)
       track_data = get_track_data(external_track_id)
-      print(tabulate([track_data], headers='keys'))
+      print(tabulate([track_data], headers='keys', floatfmt='.6f'))
       print()
       print()
