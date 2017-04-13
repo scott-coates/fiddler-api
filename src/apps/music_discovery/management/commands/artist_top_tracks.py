@@ -1,9 +1,7 @@
 from django.core.management.base import BaseCommand
 from tabulate import tabulate
 
-from src.apps.maintenance.database.service import clear_tiger_jobs
 from src.apps.music_discovery.service import get_artist_top_track_albums_data
-from src.libs.common_domain import event_store
 from src.libs.spotify_utils.spotify_service import get_spotify_id
 
 

@@ -14,6 +14,7 @@ def execute_artist_created_1(**kwargs):
   popularity = event.data['popularity']
   tasks.save_artist_info_task.delay(artist_id, genres, popularity, )
   tasks.add_external_artist_id_task(artist_id, event.data['provider_type'], event.data['external_id'])
+  tasks.add_unique_artist_id_task(artist_id, event.data['provider_type'], event.data['external_id'])
 
 
 @event_idempotent
