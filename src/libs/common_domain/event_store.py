@@ -35,7 +35,7 @@ def load_domain_event_from_event_record(event_record, _event_service=None):
   return domain_event
 
 
-def replay_events(event_names, event_handler_app_names, _event_repository=None, _event_service=None,
+def replay_events(event_names, event_ids, event_handler_app_names, _event_repository=None, _event_service=None,
                   _event_dispatcher=None):
   counter = 0
   if not _event_repository:    _event_repository = event_repository
@@ -43,7 +43,7 @@ def replay_events(event_names, event_handler_app_names, _event_repository=None, 
 
   if not _event_dispatcher:    _event_dispatcher = dispatcher
 
-  events = _event_repository.get_events(event_names)
+  events = _event_repository.get_events(event_names, event_ids)
 
   total = events.count()
   logger.debug("Replay %i events", total)

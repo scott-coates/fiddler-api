@@ -8,11 +8,10 @@ import spotipy
 import spotipy.util as util
 from django.conf import settings
 from spotipy.oauth2 import SpotifyClientCredentials
-from tabulate import tabulate
 
 from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_info, get_album_tracks, \
   get_track_external_id, \
-  get_album_id, get_external_artist_id, get_artist_info, get_track_info
+  get_album_id, get_external_artist_id, get_artist_info, get_unique_track_id, get_track_info
 from src.domain.artist.commands import CreateArtist, AddAlbum, AddTopTracksToArtist, AddTracksToAlbum, RelateArtist
 from src.domain.artist.entities import Artist
 from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError, InvalidRelatedArtistError
@@ -22,7 +21,6 @@ from src.libs.common_domain import aggregate_repository
 from src.libs.common_domain.dispatcher import send_command
 from src.libs.datetime_utils.datetime_parser import get_datetime
 from src.libs.python_utils.id.id_utils import generate_id
-from src.libs.spotify_utils.spotify_service import get_spotify_id
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +51,7 @@ def discover_music_for_request(request_id, root_artist_name):
 
   similar_artists = lfm_artist.get_similar(5)
   similar_artists = lfm_artist.get_similar(25)
-  # similar_artists = lfm_artist.get_similar(100)
+  similar_artists = lfm_artist.get_similar(100)
 
   similar_artist_names = [a.item.name for a in similar_artists]
   all_artists_names = [lfm_artist.get_name()] + similar_artist_names
@@ -208,14 +206,26 @@ def add_artist_top_tracks(artist_id, external_track_ids):
   send_command(artist_id, at)
 
 
+_album_properties = ('name', 'popularity', 'release_date')
+_feature_properties = (
+  'danceability', 'energy', 'loudness', 'speechiness',
+  'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo'
+)
+
+
+def _get_flat_track_data_obj(track_info):
+  ret_val = {'name': track_info['name'], 'popularity': track_info['popularity']}
+
+  features = track_info['features']
+  track_features = {k: v for k, v in features.items() if k in _feature_properties}
+
+  ret_val.update(track_features)
+
+  return ret_val
+
+
 def get_artist_top_track_albums_data(artist_external_id):
   ret_val = []
-
-  album_properties = ('name', 'popularity', 'release_date')
-  feature_properties = (
-    'danceability', 'energy', 'loudness', 'speechiness',
-    'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo'
-  )
 
   internal_artist_id = get_unique_artist_id(constants.SPOTIFY, artist_external_id)
   if internal_artist_id:
@@ -228,7 +238,7 @@ def get_artist_top_track_albums_data(artist_external_id):
     album_data = [get_album_info(a[0]) for a in top_tracks]
     album_data = list(sorted(album_data, key=itemgetter('release_date')))
     for album in album_data:
-      album_info = {k: v for k, v in album.items() if k in album_properties}
+      album_info = {k: v for k, v in album.items() if k in _album_properties}
       album_info = {'album': album_info}
       album_info['tracks'] = []
       ret_val.append(album_info)
@@ -236,11 +246,21 @@ def get_artist_top_track_albums_data(artist_external_id):
       tracks = top_track_albums_dict[album['id']]
       for t in tracks:
         track_info = next(tid for tid in album_tracks['tracks'] if tid['id'] == t['track_id'])
-        features = track_info['features']
-        track_data = {'name': track_info['name'], 'popularity': track_info['popularity']}
-        track_features = {k: v for k, v in features.items() if k in feature_properties}
-        track_data.update(track_features)
+        track_data = _get_flat_track_data_obj(track_info)
         album_info['tracks'].append(track_data)
+  else:
+    pass
+
+  return ret_val
+
+
+def get_track_data(track_external_id):
+  ret_val = None
+
+  internal_track_id = get_unique_track_id(constants.SPOTIFY, track_external_id)
+  if internal_track_id:
+    track_info = get_track_info(internal_track_id)
+    ret_val = _get_flat_track_data_obj(track_info)
   else:
     pass
 

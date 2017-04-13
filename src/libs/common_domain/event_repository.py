@@ -4,11 +4,14 @@ from src.libs.common_domain.errors import ConcurrencyViolationError
 from src.libs.common_domain.models import Event
 
 
-def get_events(event_names=None):
+def get_events(event_names=None, event_ids=None):
   ret_val = Event.objects.order_by('event_sequence', 'id')
 
   if event_names:
     ret_val = ret_val.filter(event_name__in=event_names)
+
+  if event_ids:
+    ret_val = ret_val.filter(id__in=event_ids)
 
   return ret_val
 
@@ -34,7 +37,7 @@ def create_events(stream_id, starting_sequence, event_type, events):
       events = Event.objects.bulk_create(event_data)
     except IntegrityError as e:
       raise ConcurrencyViolationError(
-        'Could not save duplicate events for stream: {0}.'.format(stream_id)).with_traceback(e.__traceback__)
+          'Could not save duplicate events for stream: {0}.'.format(stream_id)).with_traceback(e.__traceback__)
 
   return events
 

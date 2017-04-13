@@ -1,6 +1,7 @@
 import logging
 
 from src.apps.read_model.key_value.artist import service
+from src.apps.read_model.key_value.artist.service import add_unique_track_id
 from src.libs.datetime_utils.datetime_parser import get_datetime
 from src.libs.job_utils.job_decorator import job
 
@@ -49,8 +50,8 @@ def add_track_to_album_task(album_id, track_data):
 
 
 @job(queue='high')
-def save_track_info_task(track_id, track_data):
-  return service.save_track_info(track_id, track_data)
+def save_track_info_task(track_id, track_data, album_id):
+  return service.save_track_info(track_id, track_data, album_id)
 
 
 @job(queue='high')
@@ -71,3 +72,8 @@ def save_artist_info_task(artist_id, genres, popularity):
 @job(queue='high')
 def save_artist_top_tracks_task(artist_id, track_data):
   return service.save_artist_top_tracks(artist_id, track_data)
+
+
+@job(queue='high')
+def add_unique_track_id_task(track_id, provider_type, external_id):
+  return add_unique_track_id(track_id, provider_type, external_id)

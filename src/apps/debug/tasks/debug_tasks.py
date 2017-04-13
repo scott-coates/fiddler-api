@@ -1,13 +1,13 @@
 import logging
 
-from django_rq import job
+from src.libs.job_utils.job_decorator import job
 
 from src.libs.python_utils.logging.logging_utils import log_wrapper
 
 logger = logging.getLogger(__name__)
 
 
-@job
+@job()
 def test_error_task(name='Hello'):
   log_message = (
     "Test error task for parameter: name: %s",

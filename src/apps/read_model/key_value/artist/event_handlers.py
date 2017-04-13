@@ -2,8 +2,6 @@ from django.dispatch import receiver
 
 from src.apps.read_model.key_value.artist import tasks
 from src.domain.artist.events import AlbumAddedToArtist1, TrackAddedToAlbum1, ArtistCreated1, TopTracksRefreshed1
-from src.domain.common import constants
-
 from src.libs.common_domain.decorators import event_idempotent
 
 
@@ -54,25 +52,8 @@ def execute_track_1(**kwargs):
 
   tasks.add_track_to_album_task.delay(album_id, track_data)
   tasks.set_track_external_id_task.delay(id, provider_type, external_id)
-
-
-@event_idempotent
-@receiver(TrackAddedToAlbum1.event_signal)
-def execute_track_added_1(**kwargs):
-  # todo still needed?
-  # include popularity - like ablum -> track data does
-  event = kwargs['event']
-
-  id = event.data['id']
-  name = event.data['name']
-  features = event.data['features']
-  provider_type = event.data['provider_type']
-  external_id = event.data['external_id']
-
-  track_data = {'name': name, 'features': features, 'provider_type': provider_type,
-                'external_id': external_id}
-
-  tasks.save_track_info_task.delay(id, track_data)
+  tasks.add_unique_track_id_task.delay(id, provider_type, external_id)
+  tasks.save_track_info_task.delay(id, track_data, album_id)
 
 
 @event_idempotent
