@@ -81,7 +81,7 @@ class Request(AggregateBase):
       logger.debug('Skipping artist_id: %s already in promoted artist for root_artist: %s.', artist_id,
                    root_artist_id)
 
-  _track_features = ['acousticness', 'danceability', 'energy', 'liveness', 'loudness', 'speechiness']
+  _track_features_filter = ['acousticness', 'liveness', 'speechiness']
 
   def refresh_playlist(self):
     if self.playlist.track_ids: raise InvalidRequestError('playlist already refreshed')
@@ -103,7 +103,7 @@ class Request(AggregateBase):
       root_artist_top_track_features_data = {}
       for top_track_data in root_artist_top_track_data:
         features = top_track_data['features']
-        for tf in self._track_features:
+        for tf in self._track_features_filter:
           root_artist_top_track_feature_d[tf].append(features[tf])
 
       for k, v in root_artist_top_track_feature_d.items():
@@ -139,8 +139,10 @@ class Request(AggregateBase):
               potential_track_info = get_track_info(track_id)
               potential_track_features = potential_track_info['features']
               potential_track_features = {k: v for k, v in potential_track_features.items() if
-                                          k in self._track_features}
+                                          k in self._track_features_filter}
 
+              # todo this filtering logic is probably specific to genres
+              # ex - acoustic root artists might not get a lot of hits
               potential_track_valid = True
               for k, v in potential_track_features.items():
                 root_value_mean = root_artist_top_track_features_data[k]['mean']
@@ -165,7 +167,7 @@ class Request(AggregateBase):
                 if artist_already_in_playlist:
                   prob = [0.99, .01]
                 else:
-                  prob = [0.8, 0.2]
+                  prob = [0.95, 0.05]
 
                 if random.choices([0, 1], weights=prob)[0]:
                   playlist_track_ids.append(track_id)
