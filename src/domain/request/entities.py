@@ -2,6 +2,7 @@ import logging
 from collections import defaultdict
 from itertools import groupby
 from operator import itemgetter
+from statistics import mean, stdev
 
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
@@ -99,10 +100,18 @@ class Request(AggregateBase):
       root_artist_data = get_artist_info(root_artist_id)
       root_artist_top_track_data = [get_track_info(t['track_id']) for t in root_artist_data['top_tracks']]
       root_artist_top_track_feature_d = defaultdict(list)
+      root_artist_top_track_features_data = {}
       for top_track_data in root_artist_top_track_data:
         features = top_track_data['features']
         for tf in self._track_features:
           root_artist_top_track_feature_d[tf].append(features[tf])
+
+      for k, v in root_artist_top_track_feature_d.items():
+        root_artist_top_track_features_data[k] = {
+          'mean': mean(v),
+          'stdev': stdev(v)
+        }
+
       root_artist_genres = root_artist_data['genres']
 
       for promoted_artist_id in promoted_artist_ids:
@@ -111,6 +120,7 @@ class Request(AggregateBase):
 
       sorted_promoted_artists = sorted(promoted_artists_data,
                                        key=lambda a: root_artist_genres.intersection(a['genres']), reverse=True)
+
       for pa in sorted_promoted_artists:
         # get top tracks from artist
         top_track_albums = defaultdict(list)
