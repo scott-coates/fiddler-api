@@ -136,6 +136,27 @@ class Request(AggregateBase):
           if acceptable_age_threshold <= album['release_date']:
 
             for track_id in top_track_ids:
+              potential_track_info = get_track_info(track_id)
+              potential_track_features = potential_track_info['features']
+              potential_track_features = {k: v for k, v in potential_track_features.items() if
+                                          k in self._track_features}
+
+              potential_track_valid = True
+              for k, v in potential_track_features.items():
+                root_value_mean = root_artist_top_track_features_data[k]['mean']
+                root_value_stdev = root_artist_top_track_features_data[k]['stdev'] * 2
+                feature_max_range = root_value_stdev * 2
+                track_distance = abs(root_value_mean - v)
+                if track_distance > feature_max_range:
+                  logger.debug('track: %s is skipped. %s outside range with value of %s. mean: %f, stdev: %f', track_id,
+                               k, v,
+                               root_value_mean, root_value_stdev)
+
+                  potential_track_valid = False
+                  break
+
+              if not potential_track_valid:
+                continue
 
               if counter <= track_count_per_root_artist:
 
