@@ -155,7 +155,6 @@ def update_playlist_with_tracks(playlist_id, track_ids, ):
   for t in track_ids:
     track_data = get_track_external_id(t)
     spotify_track_ids.append(track_data['external_id'])
-    spotify_track_ids = random.sample(spotify_track_ids, min(100, len(spotify_track_ids)))
 
   results = user_auth_sp.user_playlist_replace_tracks(settings.SPOTIFY_PLAYLIST_USER_NAME, playlist_id,
                                                       spotify_track_ids)
@@ -214,7 +213,7 @@ _feature_properties = (
 
 
 def _get_flat_track_data_obj(track_info):
-  ret_val = {'name': track_info['name'], 'popularity': track_info['popularity']}
+  ret_val = {'id': track_info['id'], 'name': track_info['name'], 'popularity': track_info['popularity']}
 
   features = track_info['features']
   track_features = {k: v for k, v in features.items() if k in _feature_properties}
@@ -254,7 +253,7 @@ def get_artist_top_track_albums_data(artist_external_id):
   return ret_val
 
 
-def get_track_data(track_external_id):
+def get_flat_track_data_by_external(track_external_id):
   ret_val = None
 
   internal_track_id = get_unique_track_id(constants.SPOTIFY, track_external_id)
@@ -263,6 +262,16 @@ def get_track_data(track_external_id):
     ret_val = _get_flat_track_data_obj(track_info)
   else:
     pass
+
+  return ret_val
+
+
+def get_flat_track_data_by_internal(track_id):
+  ret_val = None
+
+  track_info = get_track_info(track_id)
+  if track_info:
+    ret_val = _get_flat_track_data_obj(track_info)
 
   return ret_val
 

@@ -23,6 +23,7 @@ def execute_assignment_batch_1(**kwargs):
   for artist_name in artist_names:
     tasks.discover_music_for_request_task.delay(r_id, artist_name)
 
+@event_idempotent
 @receiver(PlaylistRefreshedWithTracks1.event_signal)
 def playlist_refreshed_1(**kwargs):
   event = kwargs['event']
