@@ -122,24 +122,37 @@ def discover_tracks_for_album(album_id, artist_id):
     external_id = get_album_info(album_id)['external_id']
 
     sp_album = sp.album(external_id)
-    track_data = _get_tracks_and_features(sp_album['tracks']['items'])
+    track_data = _get_tracks_and_audio_info(sp_album['tracks']['items'])
 
     at = AddTracksToAlbum(album_id, track_data)
     send_command(artist_id, at)
 
 
-def _get_tracks_and_features(tracks):
+def _get_tracks_and_audio_info(tracks):
   track_ids = [t['id'] for t in tracks]
   sp_tracks = sp.tracks(track_ids)['tracks']
   track_features = sp.audio_features(track_ids)
   track_data = []
   for track_info, track_feature in zip(sp_tracks, track_features):
+    track_info_id = track_info['id']
+    track_analysis = None
+    try:
+      track_analysis = sp.audio_analysis(track_info_id)
+      track_analysis = {'track': track_analysis['track'], 'sections': track_analysis['sections']}
+      track_analysis['track'].pop('codestring', None)
+      track_analysis['track'].pop('echoprintstring', None)
+      track_analysis['track'].pop('rhythmstring', None)
+      track_analysis['track'].pop('synchstring', None)
+    except:
+      print('track_info_id', track_info_id)
+
     track_data.append({
       'name': track_info['name'],
       'popularity': track_info['popularity'],
       'features': track_feature,
+      'analysis': track_analysis,
       'provider_type': constants.SPOTIFY,
-      'external_id': track_info['id'],
+      'external_id': track_info_id,
     })
   return track_data
 

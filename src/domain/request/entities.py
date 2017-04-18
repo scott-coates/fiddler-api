@@ -165,9 +165,9 @@ class Request(AggregateBase):
                 artist_already_in_playlist = promoted_artist_id in artists_ids_in_playlist
 
                 if artist_already_in_playlist:
-                  prob = [0.99, .01]
+                  prob = [0.96, .04]
                 else:
-                  prob = [0.95, 0.05]
+                  prob = [0.90, 0.10]
 
                 if random.choices([0, 1], weights=prob)[0]:
                   playlist_track_ids.append(track_id)

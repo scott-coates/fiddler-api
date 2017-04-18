@@ -42,13 +42,16 @@ def execute_track_1(**kwargs):
   id = event.data['id']
   name = event.data['name']
   popularity = event.data['popularity']
+  analysis = event.data['analysis']
   features = event.data['features']
   provider_type = event.data['provider_type']
   external_id = event.data['external_id']
 
   album_id = event.data['album_id']
 
-  track_data = {'id': id, 'name': name, 'popularity': popularity, 'features': features, 'provider_type': provider_type,
+  track_data = {'id': id, 'name': name, 'popularity': popularity,
+                'analysis': analysis, 'features': features,
+                'provider_type': provider_type,
                 'external_id': external_id}
 
   tasks.add_track_to_album_task.delay(album_id, track_data)

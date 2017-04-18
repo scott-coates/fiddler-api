@@ -35,7 +35,7 @@ class TrackAddedToAlbum1(DomainEvent):
   event_signal = EventSignal()
 
   @initializer
-  def __init__(self, id, name, popularity, features, provider_type, external_id, album_id):
+  def __init__(self, id, name, popularity, analysis, features, provider_type, external_id, album_id):
     super().__init__()
 
 

@@ -19,8 +19,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 artists = """
-dead horses
-the last revel
+the lawrence arms
 """
 
 artists = list(filter(bool, artists.split('\n')))

@@ -208,6 +208,7 @@ def save_track_info(track_id, track_data, album_id):
 
   track_data_copy['album_id'] = album_id
   track_data_copy['features'] = json.dumps(track_data_copy['features'])
+  track_data_copy['analysis'] = json.dumps(track_data_copy['analysis'])
 
   ret_val = kdb.hmset(get_read_model_name('track_info:{0}', track_id), track_data_copy)
 
@@ -220,6 +221,7 @@ def get_track_info(track_id):
 
   ret_val = kdb.hgetall(get_read_model_name('track_info:{0}', track_id))
   ret_val['features'] = json.loads(ret_val['features'])
+  ret_val['analysis'] = json.loads(ret_val['analysis'])
   ret_val['id'] = track_id
 
   return ret_val
