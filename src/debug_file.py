@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 artists = """
 the lawrence arms
+red city radio
 """
 
 artists = list(filter(bool, artists.split('\n')))

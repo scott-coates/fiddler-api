@@ -92,95 +92,98 @@ class Request(AggregateBase):
     root_artist_count = len(self._promoted_artists)
 
     track_count_per_root_artist = _get_track_count_per_root_artist(root_artist_count)
-
     for root_artist_id, promoted_artist_ids in self._promoted_artists.items():
       counter = 0
-      promoted_artists_data = []
+      while counter <= track_count_per_root_artist:
+        promoted_artists_data = []
 
-      root_artist_data = get_artist_info(root_artist_id)
-      root_artist_top_track_data = [get_track_info(t['track_id']) for t in root_artist_data['top_tracks']]
-      root_artist_top_track_feature_d = defaultdict(list)
-      root_artist_top_track_features_data = {}
-      for top_track_data in root_artist_top_track_data:
-        features = top_track_data['features']
-        for tf in self._track_features_filter:
-          root_artist_top_track_feature_d[tf].append(features[tf])
+        root_artist_data = get_artist_info(root_artist_id)
+        root_artist_top_track_data = [get_track_info(t['track_id']) for t in root_artist_data['top_tracks']]
+        root_artist_top_track_feature_d = defaultdict(list)
+        root_artist_top_track_features_data = {}
+        for top_track_data in root_artist_top_track_data:
+          features = top_track_data['features']
+          for tf in self._track_features_filter:
+            root_artist_top_track_feature_d[tf].append(features[tf])
 
-      for k, v in root_artist_top_track_feature_d.items():
-        root_artist_top_track_features_data[k] = {
-          'mean': mean(v),
-          'stdev': stdev(v)
-        }
+        for k, v in root_artist_top_track_feature_d.items():
+          root_artist_top_track_features_data[k] = {
+            'mean': mean(v),
+            'stdev': stdev(v)
+          }
 
-      root_artist_genres = root_artist_data['genres']
+        root_artist_genres = root_artist_data['genres']
 
-      for promoted_artist_id in promoted_artist_ids:
-        promoted_artist_data = get_artist_info(promoted_artist_id)
-        promoted_artists_data.append(promoted_artist_data)
+        for promoted_artist_id in promoted_artist_ids:
+          promoted_artist_data = get_artist_info(promoted_artist_id)
+          promoted_artists_data.append(promoted_artist_data)
 
-      sorted_promoted_artists = sorted(promoted_artists_data,
-                                       key=lambda a: root_artist_genres.intersection(a['genres']), reverse=True)
+        sorted_promoted_artists = sorted(promoted_artists_data,
+                                         key=lambda a: root_artist_genres.intersection(a['genres']), reverse=True)
 
-      for pa in sorted_promoted_artists:
-        # get top tracks from artist
-        top_track_albums = defaultdict(list)
-        promoted_artist_id = pa['id']
-        pa_top_tracks = sorted(pa['top_tracks'], key=_get_album_id)
-        for track in pa_top_tracks:
-          top_track_albums[track['album_id']].append(track['track_id'])
+        for pa in sorted_promoted_artists:
+          # get top tracks from artist
+          top_track_albums = defaultdict(list)
+          promoted_artist_id = pa['id']
+          pa_top_tracks = sorted(pa['top_tracks'], key=_get_album_id)
+          for track in pa_top_tracks:
+            top_track_albums[track['album_id']].append(track['track_id'])
 
-        # grouped_top_tracks_by_album = groupby(pa_top_tracks, _get_album_id) -- NOT WORKING
-        albums = {a: get_album_info(a) for a in top_track_albums.keys()}
-        for album_id, top_track_ids in top_track_albums.items():
-          album = albums[album_id]
-          if acceptable_age_threshold <= album['release_date']:
+          # grouped_top_tracks_by_album = groupby(pa_top_tracks, _get_album_id) -- NOT WORKING
+          albums = {a: get_album_info(a) for a in top_track_albums.keys()}
+          for album_id, top_track_ids in top_track_albums.items():
+            album = albums[album_id]
+            if acceptable_age_threshold <= album['release_date']:
 
-            for track_id in top_track_ids:
-              potential_track_info = get_track_info(track_id)
-              potential_track_features = potential_track_info['features']
-              potential_track_features = {k: v for k, v in potential_track_features.items() if
-                                          k in self._track_features_filter}
+              for track_id in top_track_ids:
+                potential_track_info = get_track_info(track_id)
+                potential_track_features = potential_track_info['features']
+                potential_track_features = {k: v for k, v in potential_track_features.items() if
+                                            k in self._track_features_filter}
 
-              # todo this filtering logic is probably specific to genres
-              # ex - acoustic root artists might not get a lot of hits
-              potential_track_valid = True
-              for k, v in potential_track_features.items():
-                root_value_mean = root_artist_top_track_features_data[k]['mean']
-                root_value_stdev = root_artist_top_track_features_data[k]['stdev'] * 2
-                feature_max_range = root_value_stdev * 2
-                track_distance = abs(root_value_mean - v)
-                if track_distance > feature_max_range:
-                  logger.debug('track: %s is skipped. %s outside range with value of %s. mean: %f, stdev: %f', track_id,
-                               k, v,
-                               root_value_mean, root_value_stdev)
+                # todo this filtering logic is probably specific to genres
+                # ex - acoustic root artists might not get a lot of hits
+                potential_track_valid = True
+                for k, v in potential_track_features.items():
+                  root_value_mean = root_artist_top_track_features_data[k]['mean']
+                  root_value_stdev = root_artist_top_track_features_data[k]['stdev'] * 2
+                  feature_max_range = root_value_stdev * 2
+                  track_distance = abs(root_value_mean - v)
+                  if track_distance > feature_max_range:
+                    logger.debug('track: %s is skipped. %s outside range with value of %s. mean: %f, stdev: %f', track_id,
+                                 k, v,
+                                 root_value_mean, root_value_stdev)
 
-                  potential_track_valid = False
-                  break
+                    potential_track_valid = False
+                    break
 
-              if not potential_track_valid:
-                continue
+                if not potential_track_valid:
+                  continue
 
-              if counter <= track_count_per_root_artist:
+                if counter <= track_count_per_root_artist:
 
-                artist_already_in_playlist = promoted_artist_id in artists_ids_in_playlist
+                  artist_already_in_playlist = promoted_artist_id in artists_ids_in_playlist
 
-                if artist_already_in_playlist:
-                  prob = [0.96, .04]
+                  if artist_already_in_playlist:
+                    prob = [0.96, .0]
+                  else:
+                    prob = [0.90, 0.10]
+
+                  if random.choices([0, 1], weights=prob)[0]:
+                    playlist_track_ids.append(track_id)
+                    artists_ids_in_playlist.add(promoted_artist_id)
+                    counter += 1
                 else:
-                  prob = [0.90, 0.10]
-
-                if random.choices([0, 1], weights=prob)[0]:
-                  playlist_track_ids.append(track_id)
-                  artists_ids_in_playlist.add(promoted_artist_id)
-                  counter += 1
+                  # we've reached the breaking point, no more tracks for this root artist
+                  break
               else:
-                # we've reached the breaking point, no more tracks for this root artist
-                break
-            else:
-              # http://stackoverflow.com/questions/653509/breaking-out-of-nested-loops
-              # break out of nested loops
-              continue
-            break
+                # http://stackoverflow.com/questions/653509/breaking-out-of-nested-loops
+                # break out of nested loops
+                continue
+              break
+          else:
+            continue
+          break
         else:
           continue
         break
