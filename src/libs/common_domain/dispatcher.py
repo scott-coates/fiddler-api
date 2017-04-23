@@ -4,7 +4,7 @@ from src.libs.common_domain.errors import ConcurrencyViolationError
 
 logger = logging.getLogger(__name__)
 
-command_try_times = 5
+command_try_times = 100
 
 
 # these two methods should probably be split. their signatures may change throughout the future.

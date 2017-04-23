@@ -1,10 +1,9 @@
 import random
 
-import tasktiger
 # delay_sec will be different for each instance of tiger
 from tasktiger.retry import fixed
 
-from src.libs.key_value_utils.key_value_provider import get_key_value_client
+from src.libs.job_utils.shared_tiger_connection import get_shared_tiger_connection
 
 delay_sec = random.choice(range(5, 20))
 retries = 5
@@ -12,9 +11,7 @@ retries = 5
 
 def job(**kwargs):
   def _wrap(func):
-    conn = get_key_value_client()
-
-    tiger = tasktiger.TaskTiger(connection=conn)
+    tiger = get_shared_tiger_connection()
 
     extended_retry = kwargs.pop('extended_retry', None)
     if extended_retry:

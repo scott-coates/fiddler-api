@@ -162,10 +162,10 @@ def get_album_tracks(album_id):
   return ret_val
 
 
-def save_artist_info(artist_id, genres, popularity):
+def save_artist_info(artist_id, name, genres, popularity):
   kdb = get_key_value_client()
   genres_json = json.dumps(genres)
-  data = {'genres': genres_json, 'popularity': popularity}
+  data = {'name': name, 'genres': genres_json, 'popularity': popularity}
 
   ret_val = kdb.hmset(get_read_model_name('artist_info:{0}', artist_id), data)
 
@@ -189,6 +189,7 @@ def get_artist_info(artist_id):
   if ret_val:
     ret_val = {
       'id': artist_id,
+      'name': ret_val['name'],
       'genres': set(json.loads(ret_val['genres'])),
       'top_tracks': json.loads(ret_val['top_tracks']),
       'popularity': int(ret_val['popularity'])

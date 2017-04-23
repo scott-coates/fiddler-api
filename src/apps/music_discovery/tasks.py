@@ -1,8 +1,9 @@
 import logging
 import random
+from datetime import timedelta, datetime
 from itertools import groupby
 
-from tasktiger import fixed, linear
+from tasktiger import fixed, linear, Task
 
 from src.apps.music_discovery import service
 from src.apps.read_model.key_value.request.service import provide_journal_artists_for_request
@@ -10,8 +11,10 @@ from src.domain.artist.errors import TopTracksExistError, DuplicateTrackError
 from src.domain.request.commands import RefreshPlaylist
 from src.libs.common_domain import dispatcher
 from src.libs.job_utils.job_decorator import job
+from src.libs.job_utils.shared_tiger_connection import get_shared_tiger_connection
 from src.libs.python_utils.logging.logging_utils import log_wrapper
 
+tiger = get_shared_tiger_connection()
 logger = logging.getLogger(__name__)
 
 
@@ -170,7 +173,8 @@ def discover_top_tracks_for_artist_task(artist_id):
 
   external_track_ids = [t['id'] for t in tracks]
   # todo have this job depend on the last `discover_tracks_for_album_task` from the loop above
-  add_artist_top_tracks_task.delay(artist_id, external_track_ids)
+  task = Task(tiger, add_artist_top_tracks_task, args=[artist_id, external_track_ids])
+  task.delay(when=timedelta(seconds=25))
 
 
 @job(queue='high', extended_retry=True)

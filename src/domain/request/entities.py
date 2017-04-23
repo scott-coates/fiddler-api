@@ -122,7 +122,6 @@ class Request(AggregateBase):
                                          key=lambda a: root_artist_genres.intersection(a['genres']), reverse=True)
 
         for pa in sorted_promoted_artists:
-          # get top tracks from artist
           top_track_albums = defaultdict(list)
           promoted_artist_id = pa['id']
           pa_top_tracks = sorted(pa['top_tracks'], key=_get_album_id)
@@ -150,7 +149,8 @@ class Request(AggregateBase):
                   feature_max_range = root_value_stdev * 2
                   track_distance = abs(root_value_mean - v)
                   if track_distance > feature_max_range:
-                    logger.debug('track: %s is skipped. %s outside range with value of %s. mean: %f, stdev: %f', track_id,
+                    logger.debug('track: %s is skipped. %s outside range with value of %s. mean: %f, stdev: %f',
+                                 track_id,
                                  k, v,
                                  root_value_mean, root_value_stdev)
 
@@ -165,7 +165,7 @@ class Request(AggregateBase):
                   artist_already_in_playlist = promoted_artist_id in artists_ids_in_playlist
 
                   if artist_already_in_playlist:
-                    prob = [0.96, .0]
+                    prob = [0.96, .04]
                   else:
                     prob = [0.90, 0.10]
 
@@ -173,6 +173,13 @@ class Request(AggregateBase):
                     playlist_track_ids.append(track_id)
                     artists_ids_in_playlist.add(promoted_artist_id)
                     counter += 1
+                    added = True
+                  else:
+                    added = False
+
+                  pa_copy = pa.copy()
+                  del pa_copy['top_tracks']
+                  logger.debug('promoted artist: %s, counter: %i, added: %s', pa_copy, counter, added)
                 else:
                   # we've reached the breaking point, no more tracks for this root artist
                   break
