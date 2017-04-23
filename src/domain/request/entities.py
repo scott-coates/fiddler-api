@@ -1,19 +1,16 @@
 import logging
+import random
 from collections import defaultdict
-from itertools import groupby
-from operator import itemgetter
 from statistics import mean, stdev
 
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
-import random
-
 from src.apps.music_discovery.service import create_playlist
-from src.apps.read_model.key_value.artist.service import get_artist_info, get_artist_albums, get_album_tracks, \
-  get_album_info, get_track_info
+from src.apps.read_model.key_value.artist.service import get_artist_info, get_artist_albums, get_album_info, \
+  get_track_info
 from src.domain.common import constants
-from src.domain.request.errors import DuplicateAlbumInRequestError, InvalidRequestError
+from src.domain.request.errors import InvalidRequestError
 from src.domain.request.events import RequestSubmitted1, PlaylistCreatedForRequest, \
   PlaylistRefreshedWithTracks1, ArtistPromotedToRequest1, ArtistSkippedByRequest1
 from src.domain.request.value_objects import SpotifyPlaylist
@@ -35,6 +32,8 @@ def _get_album_id(a):
 
 
 class Request(AggregateBase):
+  _track_features_filter = ['acousticness', 'liveness', 'speechiness', 'tempo']
+
   def __init__(self):
     super().__init__()
     self._promoted_artists = defaultdict(list)
@@ -80,8 +79,6 @@ class Request(AggregateBase):
     else:
       logger.debug('Skipping artist_id: %s already in promoted artist for root_artist: %s.', artist_id,
                    root_artist_id)
-
-  _track_features_filter = ['acousticness', 'liveness', 'speechiness']
 
   def refresh_playlist(self):
     if self.playlist.track_ids: raise InvalidRequestError('playlist already refreshed')

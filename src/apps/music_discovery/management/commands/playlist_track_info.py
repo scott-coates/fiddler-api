@@ -22,7 +22,7 @@ class Command(BaseCommand):
         track_data = get_flat_track_data_by_internal(tid)
         playlist_track_data.append(track_data)
 
-      print(tabulate(playlist_track_data, headers='keys', floatfmt='.6f'))
+      print(tabulate(playlist_track_data, headers='keys', floatfmt='.4f'))
       print()
       print()
       print()

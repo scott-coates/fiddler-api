@@ -12,15 +12,17 @@ from src.libs.common_domain.dispatcher import send_command
 from src.libs.python_utils.id.id_utils import generate_id
 
 # region bootstrap interact
+from django.core.management import call_command
+import logging
 
 request_id = generate_id()
-import logging
 
 logger = logging.getLogger(__name__)
 
+call_command('clear_log_files')
+
 artists = """
-red city radio
-the menzingers
+antillectual
 """
 
 artists = list(filter(bool, artists.split('\n')))
