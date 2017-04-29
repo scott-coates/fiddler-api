@@ -18,7 +18,7 @@ class Command(BaseCommand):
         album_data = top_track_album['album']
         print(tabulate([album_data], headers='keys'))
         print()
-        print(tabulate(top_track_album['tracks'], headers='keys', floatfmt='.6f'))
+        print(tabulate(top_track_album['tracks'], headers='keys', floatfmt='.4f'))
         print()
         print()
         print()

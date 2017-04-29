@@ -23,6 +23,7 @@ call_command('clear_log_files')
 
 artists = """
 antillectual
+red city radio
 """
 
 artists = list(filter(bool, artists.split('\n')))

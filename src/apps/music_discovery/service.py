@@ -44,7 +44,7 @@ def _relate_artists(root_artist_id, artist_id):
 
 
 def discover_music_for_request(request_id, root_artist_name):
-  lfm_artist = network.get_artist(root_artist_name)
+  lfm_artist = _get_lfm_artist_by_name(root_artist_name)
 
   root_artist = get_sp_artist_by_name(root_artist_name)
   root_artist_id = create_artist_from_spotify_object(root_artist)
@@ -88,6 +88,11 @@ def discover_music_for_request(request_id, root_artist_name):
       logger.exception('discover music for %s. similar: %s', root_artist_name, artist_name)
 
   return add_artist_to_request_list
+
+
+def _get_lfm_artist_by_name(root_artist_name):
+  lfm_artist = network.get_artist(root_artist_name)
+  return lfm_artist
 
 
 def create_album_from_spotify_object(sp_album, artist_id, ):

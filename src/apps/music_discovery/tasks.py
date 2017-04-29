@@ -159,11 +159,12 @@ def discover_top_tracks_for_artist_task(artist_id):
   tracks = service.discover_top_tracks_for_artist(artist_id)
 
   # spotify's limit is 50 and we don't want to do multiple requests
-  tracks = [t for t in tracks if t['track_number'] <= 50]
+  tracks = [t for t in tracks if (t['track_number'] <= 50 and t['disc_number'] == 1)]
 
   # python requires sorting prior to groups
   tracks = sorted(tracks, key=_get_album_id)
   albums = groupby(tracks, key=_get_album_id)
+  albums = [(k, list(v)) for k, v in albums]
 
   for album_key, top_tracks in albums:
     album = list(top_tracks)[0]['album']
