@@ -27,3 +27,14 @@ def test_error_task(name='Hello'):
 
   with log_wrapper(logger.info, *log_message):
     raise Exception('ERRORR!@!@#!@# %s' % name)
+
+
+@job()
+def test_task(name='Hello'):
+  log_message = (
+    "Test task for parameter: name: %s",
+    name
+  )
+
+  with log_wrapper(logger.info, *log_message):
+    pass

@@ -22,8 +22,7 @@ logger = logging.getLogger(__name__)
 call_command('clear_log_files')
 
 artists = """
-antillectual
-red city radio
+hot water music
 """
 
 artists = list(filter(bool, artists.split('\n')))
