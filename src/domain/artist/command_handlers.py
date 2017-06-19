@@ -21,6 +21,7 @@ def create_agreement(_aggregate_repository=None, **kwargs):
     artist = Artist.from_attrs(**command.data)
     _aggregate_repository.save(artist, -1)
   except:
+    # it's possible this line is never hit, causing us to have to manually fix the issue
     clear_unique_artist_id(command.data['provider_type'], command.data['external_id'])
     raise
 

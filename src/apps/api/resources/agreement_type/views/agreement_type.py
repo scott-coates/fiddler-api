@@ -5,8 +5,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from src.apps.common import constants
-from src.domain.agreement_type import command_handlers
-from src.domain.agreement_type.commands import CreateAgreementType
+from src.domain.genre import command_handlers
+from src.domain.genre.commands import CreateAgreementType
 
 logger = logging.getLogger(__name__)
 

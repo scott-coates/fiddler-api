@@ -18,6 +18,7 @@ def save_events(stream_id, starting_sequence, event_type, events, _event_reposit
     try:
       _event_dispatcher.publish_event(stream_id, e[0], e[1].event_sequence, True, None)
     except:
+      # todo: ensure errors are handled - enqueue them in async task queue?
       logger.exception('Error dispatching event: %s.', e)
 
 

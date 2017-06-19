@@ -12,10 +12,13 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_info, get_album_tracks, \
   get_track_external_id, \
   get_album_id, get_external_artist_id, get_artist_info, get_unique_track_id, get_track_info
+from src.apps.read_model.key_value.genre.service import get_unique_genre_id
 from src.domain.artist.commands import CreateArtist, AddAlbum, AddTopTracksToArtist, AddTracksToAlbum, RelateArtist
 from src.domain.artist.entities import Artist
 from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError, InvalidRelatedArtistError
 from src.domain.common import constants
+from src.domain.genre.commands import CreateGenre
+from src.domain.genre.errors import DuplicateGenreError
 from src.domain.request.commands import SubmitArtistToRequest
 from src.libs.common_domain import aggregate_repository
 from src.libs.common_domain.dispatcher import send_command
@@ -50,8 +53,8 @@ def discover_music_for_request(request_id, root_artist_name):
   root_artist_id = create_artist_from_spotify_object(root_artist)
 
   similar_artists = lfm_artist.get_similar(5)
-  similar_artists = lfm_artist.get_similar(25)
-  similar_artists = lfm_artist.get_similar(100)
+  # similar_artists = lfm_artist.get_similar(25)
+  # similar_artists = lfm_artist.get_similar(100)
 
   similar_artist_names = [a.item.name for a in similar_artists]
   all_artists_names = [lfm_artist.get_name()] + similar_artist_names
@@ -111,7 +114,9 @@ def create_album_from_spotify_uri(sp_album_uri, artist_id):
 
 
 def create_artist_from_spotify_object(artist):
-  return _create_artist(artist['name'], artist['genres'], artist['popularity'], constants.SPOTIFY, artist['id'])
+  genres = artist['genres']
+  genre_ids = [_create_genre(g, constants.SPOTIFY, g) for g in genres]
+  return _create_artist(artist['name'], genre_ids, artist['popularity'], constants.SPOTIFY, artist['id'])
 
 
 def get_sp_artist_by_name(artist_name):
@@ -177,6 +182,18 @@ def update_playlist_with_tracks(playlist_id, track_ids, ):
   results = user_auth_sp.user_playlist_replace_tracks(settings.SPOTIFY_PLAYLIST_USER_NAME, playlist_id,
                                                       spotify_track_ids)
   return results
+
+
+def _create_genre(name, provider_type, external_id):
+  genre_id = generate_id()
+
+  try:
+    cg = CreateGenre(genre_id, name, provider_type, external_id)
+    send_command(genre_id, cg)
+  except DuplicateGenreError:
+    genre_id = get_unique_genre_id(provider_type, external_id)
+
+  return genre_id
 
 
 def _create_artist(name, genres, popularity, provider_type, external_id):

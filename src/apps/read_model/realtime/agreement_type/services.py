@@ -1,4 +1,4 @@
-from src.domain.agreement_type import services as at_service
+from src.domain.genre import service as at_service
 from src.libs.firebase_utils.services import firebase_provider
 
 
