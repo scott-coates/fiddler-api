@@ -15,5 +15,5 @@ simplejson==3.8.0
 tabulate==0.7.7
 pylast==1.8.0
 spotipy==2.4.4
-tasktiger==0.8.4
+tasktiger==0.9.1
 tasktiger-admin==0.2.2
