@@ -13,7 +13,7 @@ from src.domain.artist.commands import UpdateAgreementAttrs, DeleteAgreement, De
 from src.domain.artist.entities import Agreement
 from src.domain.asset import command_handlers as asset_command_handlers
 from src.domain.asset.commands import CreateAssetFromFile
-from src.domain.potential_agreement.commands import CreatePotentialAgreement, CompletePotentialAgreement
+from src.domain.source.commands import CreatePotentialAgreement, CompletePotentialAgreement
 from src.libs.common_domain import dispatcher, aggregate_repository
 from src.libs.datetime_utils import datetime_utils
 from src.libs.python_utils.id.id_utils import generate_id

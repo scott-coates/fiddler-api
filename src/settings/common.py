@@ -144,6 +144,7 @@ LOCAL_APPS = (
   'src.domain.artist',
   'src.domain.genre',
   'src.domain.request',
+  'src.domain.source',
 
   # APPS
   'src.apps.music_discovery',
