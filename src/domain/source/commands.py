@@ -7,5 +7,5 @@ class CreateSource(DomainCommand):
   command_signal = CommandSignal()
 
   @initializer
-  def __init__(self, id, name, source_type, attrs):
+  def __init__(self, id, name, provider_type, source_type, attrs):
     pass

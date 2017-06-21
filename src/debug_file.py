@@ -1,5 +1,8 @@
 import django
 
+from src.domain.common import constants
+from src.domain.source.commands import CreateSource
+
 django.setup()
 from src.apps.read_model.key_value.artist.service import get_album_tracks
 from src.domain.request.entities import Request
@@ -15,25 +18,33 @@ from src.libs.python_utils.id.id_utils import generate_id
 from django.core.management import call_command
 import logging
 
+source_id = generate_id()
 request_id = generate_id()
 
 logger = logging.getLogger(__name__)
 
 call_command('clear_log_files')
 
-artists = """
-hot water music
-"""
-
-artists = list(filter(bool, artists.split('\n')))
-
-artists_info = ([], [])
-for artist_name in artists:
-  artist = get_sp_artist_by_name(artist_name)
-  artist_id = create_artist_from_spotify_object(artist)
-  artists_info[0].append(artist_id)
-  artists_info[1].append(artist['name'])
-send_command(-1, SubmitRequest(request_id, artists_info[0], artists_info[1]))
+source_attrs = {'user_external_id': 'spotify', 'playlist_external_id': '37i9dQZF1DX0KpeLFwA3tO'}
+send_command(-1, CreateSource(
+    source_id, 'Spotify New Punk Tracks Playlist',
+    constants.SPOTIFY, constants.PLAYLIST,
+    source_attrs
+))
+#
+# artists = """
+# hot water music
+# """
+#
+# artists = list(filter(bool, artists.split('\n')))
+#
+# artists_info = ([], [])
+# for artist_name in artists:
+#   artist = get_sp_artist_by_name(artist_name)
+# artist_id = create_artist_from_spotify_object(artist)
+# artists_info[0].append(artist_id)
+# artists_info[1].append(artist['name'])
+# send_command(-1, SubmitRequest(request_id, artists_info[0], artists_info[1]))
 
 # endregion
 

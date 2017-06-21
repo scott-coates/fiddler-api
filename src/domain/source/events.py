@@ -8,5 +8,5 @@ class SourceCreated1(DomainEvent):
   event_signal = EventSignal()
 
   @initializer
-  def __init__(self, id, name, source_type, attrs):
+  def __init__(self, id, name, provider_type, source_type, attrs):
     super().__init__()

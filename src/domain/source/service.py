@@ -2,7 +2,7 @@ from src.apps.music_discovery import service
 from src.domain.common import constants
 
 
-def source_lookup(source_id, name, provider_type, source_type, attrs):
+def source_lookup(provider_type, source_type, attrs):
   # if it's a spotify playlist, lookup the playlist by uri and owner
     # then iterate through every song
     # download the album --> artist --> add to system
