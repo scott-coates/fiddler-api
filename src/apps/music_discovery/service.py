@@ -10,7 +10,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_info, get_album_tracks, \
   get_track_external_id, \
-  get_album_id, get_external_artist_id, get_artist_info, get_unique_track_id, get_track_info
+  get_external_artist_id, get_artist_info, get_unique_track_id, get_track_info
 from src.apps.read_model.key_value.genre.service import get_unique_genre_id
 from src.domain.artist.commands import CreateArtist, AddAlbum, AddTopTracksToArtist, AddTracksToAlbum, RelateArtist
 from src.domain.artist.entities import Artist
@@ -301,7 +301,11 @@ def get_flat_track_data_by_internal(track_id):
 
 
 def _get_album_id_from_track_obj(track):
-  return track['album_id']
+  return track['album']['id']
+
+
+def _get_artist_id_from_track_obj(track):
+  return track['artists'][0]['id']
 
 
 def discover_music_from_playlist(attrs, provider_type):
@@ -310,10 +314,24 @@ def discover_music_from_playlist(attrs, provider_type):
   if provider_type == constants.SPOTIFY:
     username = attrs['user_external_id']
     playlist_id = attrs['playlist_external_id']
-    playlist = sp.user_playlist(username, playlist_id)['tracks']['items']
+    playlist_tracks = [i['track'] for i in sp.user_playlist(username, playlist_id)['tracks']['items']]
 
-    for playlist_track_item in playlist:
-      track = playlist_track_item['track']
+    gar = _get_artist_id_from_track_obj
+    gal = _get_album_id_from_track_obj
+    tracks_grouped_by_artist = sorted(playlist_tracks, key=gar)
+    tracks_grouped_by_artist = [(k, list(v)) for k, v in groupby(tracks_grouped_by_artist, key=gar)]
 
+    for artist_key, artist_tracks in tracks_grouped_by_artist:
+      # create the unique artist in this list of tracks
+      artist_id = artist_tracks[0]['artists'][0]['id']
+      artist_obj = sp.artist(artist_id)
+      artist_id = create_artist_from_spotify_object(artist_obj)
+
+      tracks_grouped_by_album = sorted(artist_tracks, key=gal)
+      tracks_grouped_by_album = [(k, list(v)) for k, v in groupby(tracks_grouped_by_album, key=gal)]
+
+      for album_key, tracks_in_album in tracks_grouped_by_album:
+        album_obj = sp.album(album_key)
+        create_album_from_spotify_object(album_obj, artist_id)
 
   return ret_val

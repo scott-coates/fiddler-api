@@ -1,8 +1,11 @@
+from src.apps.music_discovery import service
 from src.domain.common import constants
 
 
-def source_lookup(source_id, name, source_type, attrs):
-  url = attrs[constants.URL]
-  # use tiger code to create periodic task
-  # this task is going to call a service --> and that service will interact w/ the source to get new data
-  pass
+def source_lookup(source_id, name, provider_type, source_type, attrs):
+  # if it's a spotify playlist, lookup the playlist by uri and owner
+    # then iterate through every song
+    # download the album --> artist --> add to system
+    #  look up album and top tracks
+  if source_type == constants.PLAYLIST:
+    service.discover_music_from_playlist(attrs, provider_type)
