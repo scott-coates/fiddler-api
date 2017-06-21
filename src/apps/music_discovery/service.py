@@ -1,5 +1,4 @@
 import logging
-import random
 from itertools import groupby
 from operator import itemgetter
 
@@ -71,16 +70,6 @@ def discover_music_for_request(request_id, root_artist_name):
 
       artist_id = create_artist_from_spotify_object(artist)
       _relate_artists(root_artist_id, artist_id)
-
-      albums = sp.artist_albums(artist['id'])['items']
-
-      for album in albums:
-        album_id = get_album_id(constants.SPOTIFY, album['id'])
-
-        if not album_id:
-          album_uri = album['uri']
-          sp_album = sp.album(album_uri)
-          create_album_from_spotify_object(sp_album, artist_id, )
 
       add_artist_to_request_list.append((request_id, artist_id, root_artist_id))
 
@@ -313,3 +302,18 @@ def get_flat_track_data_by_internal(track_id):
 
 def _get_album_id_from_track_obj(track):
   return track['album_id']
+
+
+def discover_music_from_playlist(attrs, provider_type):
+  ret_val = None
+
+  if provider_type == constants.SPOTIFY:
+    username = attrs['user_external_id']
+    playlist_id = attrs['playlist_external_id']
+    playlist = sp.user_playlist(username, playlist_id)['tracks']['items']
+
+    for playlist_track_item in playlist:
+      track = playlist_track_item['track']
+
+
+  return ret_val
