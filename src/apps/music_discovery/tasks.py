@@ -1,9 +1,10 @@
 import logging
-import random
-from datetime import timedelta, datetime
+from datetime import timedelta
 from itertools import groupby
 
-from tasktiger import fixed, linear, Task
+from dateutil.relativedelta import relativedelta
+from django.utils import timezone
+from tasktiger import linear, Task, periodic
 
 from src.apps.music_discovery import service
 from src.apps.read_model.key_value.request.service import provide_journal_artists_for_request
@@ -193,3 +194,15 @@ def submit_artist_to_request_task(request_id, artist_id, root_artist_id, ):
     root_artist_id)
   with log_wrapper(logger.debug, *log_message):
     return service.submit_artist_to_request(request_id, artist_id, root_artist_id, )
+
+
+@job(queue='default')
+def create_artist_top_track_discover_schedule_task(artist_id):
+  return artist_top_track_discover_schedule_task.delay(artist_id)
+
+
+@job(queue='default', schedule=periodic(days=1, start_date=timezone.now() + relativedelta(days=1)))
+def artist_top_track_discover_schedule_task(artist_id):
+  # use tiger code to create periodic task
+  # this task is going to call a service --> and that service will interact w/ the source to get new data
+  return discover_top_tracks_for_artist_task(artist_id)

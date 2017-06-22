@@ -57,4 +57,8 @@ from src.libs.common_domain.decorators import event_idempotent
 @receiver(ArtistCreated1.event_signal)
 def artist_cratedassignment_batch_1(**kwargs):
   artist_id = kwargs['aggregate_id']
+
+  tasks.create_artist_top_track_discover_schedule_task.delay(artist_id)
+
+  # execuite it now
   tasks.discover_top_tracks_for_artist_task.delay(artist_id)
