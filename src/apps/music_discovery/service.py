@@ -1,4 +1,5 @@
 import logging
+from atexit import _run_exitfuncs
 from itertools import groupby
 from operator import itemgetter
 
@@ -25,7 +26,6 @@ from src.libs.common_domain.dispatcher import send_command
 from src.libs.datetime_utils.datetime_parser import get_datetime
 from src.libs.python_utils.id.id_utils import generate_id
 from src.libs.scraper_utils.services.dryscrape_scraper import scraper
-from src.libs.spotify_utils.spotify_service import get_spotify_id
 
 logger = logging.getLogger(__name__)
 
@@ -377,3 +377,9 @@ def discover_music_from_artist_website(url):
     spotify_id = spotify_link.get_attr('href').split('/')[-1]
     artist = sp.artist(spotify_id)
     artist_id = create_artist_from_spotify_object(artist)
+
+
+  _run_exitfuncs()
+  # guarantees a cleanup
+  # https://dryscrape.readthedocs.io/en/latest/apidoc.html#webkit_server.Server.kill
+  # https://github.com/closeio/tasktiger/issues/65
