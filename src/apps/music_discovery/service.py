@@ -8,6 +8,7 @@ import spotipy.util as util
 from django.conf import settings
 from spotipy.oauth2 import SpotifyClientCredentials
 
+from src.apps.music_discovery.signals import artist_url_discovered
 from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_info, get_album_tracks, \
   get_track_external_id, \
   get_external_artist_id, get_artist_info, get_unique_track_id, get_track_info
@@ -23,6 +24,8 @@ from src.libs.common_domain import aggregate_repository
 from src.libs.common_domain.dispatcher import send_command
 from src.libs.datetime_utils.datetime_parser import get_datetime
 from src.libs.python_utils.id.id_utils import generate_id
+from src.libs.scraper_utils.services.dryscrape_scraper import scraper
+from src.libs.spotify_utils.spotify_service import get_spotify_id
 
 logger = logging.getLogger(__name__)
 
@@ -312,8 +315,8 @@ def discover_music_from_playlist(attrs, provider_type):
   ret_val = None
 
   if provider_type == constants.SPOTIFY:
-    username = attrs['user_external_id']
-    playlist_id = attrs['playlist_external_id']
+    username = attrs[constants.USER_EXTERNAL_ID]
+    playlist_id = attrs[constants.PLAYLIST_EXTERNAL_ID]
     playlist_tracks = [i['track'] for i in sp.user_playlist(username, playlist_id)['tracks']['items']]
 
     gar = _get_artist_id_from_track_obj
@@ -335,3 +338,42 @@ def discover_music_from_playlist(attrs, provider_type):
         create_album_from_spotify_object(album_obj, artist_id)
 
   return ret_val
+
+
+def discover_music_from_website(attrs, provider_type):
+  ret_val = None
+
+  if provider_type == 'mile-of-music':
+    url = attrs[constants.URL]
+
+    # set up a web scraping session
+    sess = scraper.Session()
+
+    # we don't need images
+    sess.set_attribute('auto_load_images', False)
+
+    # visit homepage and search for a term
+    sess.visit(url)
+    links = sess.css('#outer-page-wrapper .save-content a')#[:10]
+    for link in links:
+      artist_url = link.get_attr('href')
+      artist_url_discovered.send(None, url=artist_url)
+
+  return ret_val
+
+
+def discover_music_from_artist_website(url):
+  # set up a web scraping session
+  sess = scraper.Session()
+
+  # we don't need images
+  sess.set_attribute('auto_load_images', False)
+
+  # visit homepage and search for a term
+  sess.visit(url)
+
+  spotify_link = sess.at_xpath("//a[contains(@href,'spotify.com/artist')]")
+  if spotify_link:
+    spotify_id = spotify_link.get_attr('href').split('/')[-1]
+    artist = sp.artist(spotify_id)
+    artist_id = create_artist_from_spotify_object(artist)

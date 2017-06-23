@@ -11,26 +11,35 @@ from src.libs.common_domain import aggregate_repository, event_repository
 from src.apps.music_discovery.service import get_sp_artist_by_name, create_artist_from_spotify_object
 from src.domain.request.commands import SubmitRequest
 from src.libs.common_domain.dispatcher import send_command
-
 from src.libs.python_utils.id.id_utils import generate_id
 
-# region bootstrap interact
-from django.core.management import call_command
 import logging
-
-source_id = generate_id()
-request_id = generate_id()
+import sys
 
 logger = logging.getLogger(__name__)
 
-call_command('clear_log_files')
+# region bootstrap interact
+# from django.core.management import call_command
+source_id = generate_id()
+# request_id = generate_id()
+#
+# call_command('clear_log_files')
+#
+# source_attrs = {constants.USER_EXTERNAL_ID: 'spotify', constants.PLAYLIST_EXTERNAL_ID: '37i9dQZF1DX0KpeLFwA3tO'}
+# send_command(-1, CreateSource(
+#     source_id, 'Spotify New Punk Tracks Playlist',
+#     constants.SPOTIFY, constants.PLAYLIST,
+#     source_attrs
+# ))
 
-source_attrs = {'user_external_id': 'spotify', 'playlist_external_id': '37i9dQZF1DX0KpeLFwA3tO'}
-send_command(-1, CreateSource(
-    source_id, 'Spotify New Punk Tracks Playlist',
-    constants.SPOTIFY, constants.PLAYLIST,
-    source_attrs
-))
+source_attrs = {constants.USER_EXTERNAL_ID: 'spotify', constants.PLAYLIST_EXTERNAL_ID: '37i9dQZF1DX0KpeLFwA3tO'}
+
+# send_command(-1, CreateSource(
+#     source_id, 'MoM 2017',
+#     'mile-of-music', constants.WEBSITE,
+#     source_attrs
+# ))
+
 #
 # artists = """
 # hot water music
@@ -46,6 +55,37 @@ send_command(-1, CreateSource(
 # artists_info[1].append(artist['name'])
 # send_command(-1, SubmitRequest(request_id, artists_info[0], artists_info[1]))
 
+# endregion
+
+# region scraper
+# import dryscrape
+#
+# if 'linux' in sys.platform:
+#   # start xvfb in case no X is running. Make sure xvfb
+#   # is installed, otherwise this won't work!
+#   dryscrape.start_xvfb()
+#
+# search_term = 'dryscrape'
+#
+# # set up a web scraping session
+# sess = dryscrape.Session(base_url='http://google.com')
+#
+# # we don't need images
+# sess.set_attribute('auto_load_images', False)
+#
+# # visit homepage and search for a term
+# sess.visit('/')
+# q = sess.at_xpath('//*[@name="q"]')
+# q.set(search_term)
+# q.form().submit()
+#
+# # extract all links
+# for link in sess.xpath('//a[@href]'):
+#   print(link['href'])
+#
+# # save a screenshot of the web page
+# sess.render('google.png')
+# print("Screenshot written to 'google.png'")
 # endregion
 
 # region vanilla

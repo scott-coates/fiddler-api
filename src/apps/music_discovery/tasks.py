@@ -206,3 +206,8 @@ def artist_top_track_discover_schedule_task(artist_id):
   # use tiger code to create periodic task
   # this task is going to call a service --> and that service will interact w/ the source to get new data
   return discover_top_tracks_for_artist_task(artist_id)
+
+
+@job(queue='default')
+def discover_music_from_artist_website_task(url):
+  return service.discover_music_from_artist_website(url)
