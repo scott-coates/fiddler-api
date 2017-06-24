@@ -11,4 +11,4 @@ def source_lookup(provider_type, source_type, attrs):
   if source_type == constants.PLAYLIST:
     service.discover_music_from_playlist(attrs, provider_type)
   elif source_type == constants.WEBSITE:
-    service.discover_music_from_playlist(attrs, provider_type)
+    service.discover_music_from_website(attrs, provider_type)

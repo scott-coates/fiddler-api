@@ -8,6 +8,7 @@ import spotipy
 import spotipy.util as util
 from django.conf import settings
 from spotipy.oauth2 import SpotifyClientCredentials
+from webkit_server import InvalidResponseError
 
 from src.apps.music_discovery.signals import artist_url_discovered
 from src.apps.read_model.key_value.artist.service import get_unique_artist_id, get_album_info, get_album_tracks, \
@@ -377,7 +378,7 @@ def discover_music_from_artist_website(url):
     if spotify_link:
       spotify_id = spotify_link.get_attr('href').split('/')[-1]
       artist = sp.artist(spotify_id)
-      artist_id = create_artist_from_spotify_object(artist)
+      create_artist_from_spotify_object(artist)
   except InvalidResponseError:
     # timeout error
     pass

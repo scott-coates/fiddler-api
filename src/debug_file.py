@@ -32,13 +32,14 @@ source_id = generate_id()
 #     source_attrs
 # ))
 
-source_attrs = {constants.USER_EXTERNAL_ID: 'spotify', constants.PLAYLIST_EXTERNAL_ID: '37i9dQZF1DX0KpeLFwA3tO'}
+# source_attrs = {constants.USER_EXTERNAL_ID: 'spotify', constants.PLAYLIST_EXTERNAL_ID: '37i9dQZF1DX0KpeLFwA3tO'}
+source_attrs = {constants.URL: 'https://mileofmusic.com/lineup/'}
 
-# send_command(-1, CreateSource(
-#     source_id, 'MoM 2017',
-#     'mile-of-music', constants.WEBSITE,
-#     source_attrs
-# ))
+send_command(-1, CreateSource(
+    source_id, 'MoM 2017',
+    'mile-of-music', constants.WEBSITE,
+    source_attrs
+))
 
 #
 # artists = """
