@@ -366,20 +366,23 @@ def discover_music_from_artist_website(url):
   # set up a web scraping session
   sess = scraper.Session()
 
-  # we don't need images
-  sess.set_attribute('auto_load_images', False)
+  try:
+    sess.set_timeout(10) # seconds
+    # we don't need images
+    sess.set_attribute('auto_load_images', False)
+    # visit homepage and search for a term
+    sess.visit(url)
 
-  # visit homepage and search for a term
-  sess.visit(url)
-
-  spotify_link = sess.at_xpath("//a[contains(@href,'spotify.com/artist')]")
-  if spotify_link:
-    spotify_id = spotify_link.get_attr('href').split('/')[-1]
-    artist = sp.artist(spotify_id)
-    artist_id = create_artist_from_spotify_object(artist)
-
-
-  _run_exitfuncs()
-  # guarantees a cleanup
-  # https://dryscrape.readthedocs.io/en/latest/apidoc.html#webkit_server.Server.kill
-  # https://github.com/closeio/tasktiger/issues/65
+    spotify_link = sess.at_xpath("//a[contains(@href,'spotify.com/artist')]")
+    if spotify_link:
+      spotify_id = spotify_link.get_attr('href').split('/')[-1]
+      artist = sp.artist(spotify_id)
+      artist_id = create_artist_from_spotify_object(artist)
+  except InvalidResponseError:
+    # timeout error
+    pass
+  finally:
+    _run_exitfuncs()
+    # guarantees a cleanup - not working in task tiger
+    # https://dryscrape.readthedocs.io/en/latest/apidoc.html#webkit_server.Server.kill
+    # https://github.com/closeio/tasktiger/issues/65
