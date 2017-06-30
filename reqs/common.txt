@@ -3,7 +3,6 @@ python-dateutil==2.5.3
 pytz==2016.4
 django-redis==4.4.3
 redis==2.10.5
--e git://github.com/lamflam/rq-scheduler-dashboard.git@e541eed9e660074a97a438adc85fdd523ff25756#egg=rq_scheduler_dashboard-master
 jsonfield==1.0.3
 requests==2.10.0
 python-firebase==1.2

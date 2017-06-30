@@ -142,6 +142,7 @@ THIRD_PARTY_APPS = (
 LOCAL_APPS = (
   # DOMAIN
   'src.domain.artist',
+  'src.domain.event',
   'src.domain.genre',
   'src.domain.request',
   'src.domain.source',

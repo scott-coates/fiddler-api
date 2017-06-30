@@ -1,7 +1,7 @@
 from django.utils import timezone
 
 from src.domain.genre import service as agreement_type_service
-from src.domain.asset import services as asset_service
+from src.domain.event import service as asset_service
 from src.libs.datetime_utils.datetime_utils import get_timestamp_from_datetime
 from src.libs.firebase_utils.services import firebase_provider
 from src.libs.firebase_utils.value.value_utils import _provide_params

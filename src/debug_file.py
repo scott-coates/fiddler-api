@@ -1,6 +1,7 @@
 import django
 
 from src.domain.common import constants
+from src.domain.event.commands import CreateEvent
 from src.domain.source.commands import CreateSource
 
 django.setup()
@@ -33,13 +34,26 @@ source_id = generate_id()
 # ))
 
 # source_attrs = {constants.USER_EXTERNAL_ID: 'spotify', constants.PLAYLIST_EXTERNAL_ID: '37i9dQZF1DX0KpeLFwA3tO'}
-source_attrs = {constants.URL: 'https://mileofmusic.com/lineup/'}
+# source_attrs = {constants.URL: 'https://mileofmusic.com/lineup/'}
+#
+# send_command(-1, CreateSource(
+#     source_id, 'MoM 2017',
+#     'mile-of-music', constants.WEBSITE,
+#     source_attrs
+# ))
+# after a website is scraped, artists are obtained and they're genre's are captured and a schedule to get their top tracks is setup as well
+# now i have an event that is created - Event, name, --> attrs like the artist_listing_page
+# this event will in turn create a source
+# when all bands are scraped from the source, we want to create a playlist for the event
+# and a playlist for each 'good' genre - some genres are too niche - selected genres
 
-send_command(-1, CreateSource(
-    source_id, 'MoM 2017',
-    'mile-of-music', constants.WEBSITE,
-    source_attrs
+event_attrs = {constants.URL: 'https://mileofmusic.com/lineup/'}
+
+send_command(-1, CreateEvent(
+  source_id, 'MoM 2017',
+  event_attrs
 ))
+
 
 #
 # artists = """

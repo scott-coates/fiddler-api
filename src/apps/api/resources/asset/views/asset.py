@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from src.domain.asset import services
+from src.domain.event import service
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def asset_view(request, asset_id, _asset_service=None):
   # this method should be considered internal and no public api call should be allowed to pass in a file for an agreement
   # refer to https://app.asana.com/0/10235149247655/46476660493804
-  if not _asset_service: _asset_service = services
+  if not _asset_service: _asset_service = service
 
   try:
     asset_lookup = _asset_service.get_asset_lookup(asset_id)

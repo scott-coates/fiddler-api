@@ -1,4 +1,5 @@
 ID = 'id'
+ATTRS = 'attrs'
 
 SPOTIFY = 'spotify'
 PLAYLIST = 'playlist'

@@ -11,8 +11,8 @@ from src.apps.common import constants
 from src.apps.read_model.realtime.agreement import services as realtime_agreement_service
 from src.domain.artist.commands import UpdateAgreementAttrs, DeleteAgreement, DeleteArtifact, CreateArtifact
 from src.domain.artist.entities import Agreement
-from src.domain.asset import command_handlers as asset_command_handlers
-from src.domain.asset.commands import CreateAssetFromFile
+from src.domain.event import command_handlers as asset_command_handlers
+from src.domain.event.commands import CreateAssetFromFile
 from src.domain.source.commands import CreatePotentialAgreement, CompletePotentialAgreement
 from src.libs.common_domain import dispatcher, aggregate_repository
 from src.libs.datetime_utils import datetime_utils
