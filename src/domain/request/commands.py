@@ -4,6 +4,11 @@ from src.libs.python_utils.objects.object_utils import initializer
 
 
 class SubmitRequest(DomainCommand):
+  # TODO - combine attrs generic type with something that validates shapes
+  # https://github.com/schematics/schematics/ might work
+  # This is a object style
+  # Example:
+  # SubmitRequest(request_id, artists_info[0], artists_info[1])
   command_signal = CommandSignal()
 
   @initializer

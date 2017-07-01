@@ -127,7 +127,7 @@ def discover_music_for_request_task(request_id, artist_name):
   for artist_item in add_artist_to_request_list:
     submit_artist_to_request_task.delay(artist_item[0], artist_item[1], artist_item[2])
 
-  artist_ids_to_add = [a[1] for a in add_artist_to_request_list]
+  artist_ids_to_add = [f"{a[1]}:{a[2]}" for a in add_artist_to_request_list]
   provide_journal_artists_for_request(request_id, artist_ids_to_add)
 
   return add_artist_to_request_list
