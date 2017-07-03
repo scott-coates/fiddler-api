@@ -12,15 +12,6 @@ class RequestSubmitted1(DomainEvent):
     super().__init__()
 
 
-class PlaylistCreatedForRequest(DomainEvent):
-  event_func_name = 'playlist_created_1'
-  event_signal = EventSignal()
-
-  @initializer
-  def __init__(self, name, provider_type, external_id, external_url):
-    super().__init__()
-
-
 class ArtistPromotedToRequest1(DomainEvent):
   event_func_name = 'artist_promoted_1'
   event_signal = EventSignal()
@@ -45,4 +36,13 @@ class PlaylistRefreshedWithTracks1(DomainEvent):
 
   @initializer
   def __init__(self, track_ids, artist_ids_in_playlist, provider_type, external_id):
+    super().__init__()
+
+
+class RequestLinkedWithPlaylist1(DomainEvent):
+  event_func_name = 'playlist_linked_1'
+  event_signal = EventSignal()
+
+  @initializer
+  def __init__(self, playlist_id):
     super().__init__()

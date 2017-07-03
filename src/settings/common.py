@@ -144,6 +144,7 @@ LOCAL_APPS = (
   'src.domain.artist',
   'src.domain.event',
   'src.domain.genre',
+  'src.domain.playlist',
   'src.domain.request',
   'src.domain.source',
 

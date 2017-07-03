@@ -355,7 +355,7 @@ def discover_music_from_website(attrs, provider_type):
 
     # visit homepage and search for a term
     sess.visit(url)
-    links = sess.css('#outer-page-wrapper .save-content a')#[:10]
+    links = sess.css('#outer-page-wrapper .save-content a')  # [:10]
     for link in links:
       artist_url = link.get_attr('href')
       artist_url_discovered.send(None, url=artist_url)
@@ -368,7 +368,7 @@ def discover_music_from_artist_website(url):
   sess = scraper.Session()
 
   try:
-    sess.set_timeout(10) # seconds
+    sess.set_timeout(10)  # seconds
     # we don't need images
     sess.set_attribute('auto_load_images', False)
     # visit homepage and search for a term

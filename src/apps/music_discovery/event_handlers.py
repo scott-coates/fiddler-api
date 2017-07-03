@@ -1,18 +1,17 @@
 import logging
-import webbrowser
 
 from django.dispatch import receiver
 
 from src.apps.music_discovery import tasks
 from src.apps.music_discovery.signals import artist_url_discovered
 from src.domain.common import constants
-from src.domain.request.events import RequestSubmitted1, PlaylistRefreshedWithTracks1, PlaylistCreatedForRequest
+from src.domain.request.events import PlaylistRefreshedWithTracks1
 from src.libs.common_domain.decorators import event_idempotent
 
 logger = logging.getLogger(__name__)
 
 
-@receiver(RequestSubmitted1.event_signal)
+# @receiver(RequestSubmitted1.event_signal)
 def execute_assignment_batch_1(**kwargs):
   event = kwargs['event']
 
@@ -32,15 +31,6 @@ def playlist_refreshed_1(**kwargs):
   track_ids = event.data['track_ids']
 
   tasks.update_playlist_with_tracks_task.delay(external_id, track_ids)
-
-
-@receiver(PlaylistCreatedForRequest.event_signal)
-def open_playlist(**kwargs):
-  event = kwargs['event']
-
-  spotify_url = event.data['external_url']
-  webbrowser.open(spotify_url)
-  logger.info(spotify_url)
 
 
 @receiver(artist_url_discovered)

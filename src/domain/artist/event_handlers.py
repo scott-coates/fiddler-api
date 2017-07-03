@@ -54,7 +54,7 @@ from src.domain.artist.events import ArtistCreated1
 from src.libs.common_domain.decorators import event_idempotent
 
 
-@receiver(ArtistCreated1.event_signal)
+# @receiver(ArtistCreated1.event_signal)
 def artist_cratedassignment_batch_1(**kwargs):
   artist_id = kwargs['aggregate_id']
 

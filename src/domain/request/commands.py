@@ -16,12 +16,21 @@ class SubmitRequest(DomainCommand):
     pass
 
 
+class LinkRequestToPlaylist(DomainCommand):
+  command_signal = CommandSignal()
+
+  @initializer
+  def __init__(self, playlist_id):
+    pass
+
+
 class SubmitArtistToRequest(DomainCommand):
   command_signal = CommandSignal()
 
   @initializer
   def __init__(self, artist_id, root_artist_id):
     pass
+
 
 class RefreshPlaylist(DomainCommand):
   command_signal = CommandSignal()

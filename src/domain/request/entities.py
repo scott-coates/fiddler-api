@@ -6,14 +6,11 @@ from statistics import mean, stdev
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
-from src.apps.music_discovery.service import create_playlist
 from src.apps.read_model.key_value.artist.service import get_artist_info, get_artist_albums, get_album_info, \
   get_track_info
-from src.domain.common import constants
-from src.domain.request.errors import InvalidRequestError
-from src.domain.request.events import RequestSubmitted1, PlaylistCreatedForRequest, \
-  PlaylistRefreshedWithTracks1, ArtistPromotedToRequest1, ArtistSkippedByRequest1
-from src.domain.request.value_objects import SpotifyPlaylist
+from src.domain.request.errors import InvalidRequestError, PlaylistAlreadyExistsError
+from src.domain.request.events import RequestSubmitted1, PlaylistRefreshedWithTracks1, ArtistPromotedToRequest1, \
+  ArtistSkippedByRequest1, RequestLinkedWithPlaylist1
 from src.libs.common_domain.aggregate_base import AggregateBase
 
 logger = logging.getLogger(__name__)
@@ -38,7 +35,7 @@ class Request(AggregateBase):
     super().__init__()
     self._promoted_artists = defaultdict(list)
     self._skipped_artists = defaultdict(list)
-    self.playlist = None
+    self.playlist_id = None
 
   @classmethod
   def submit(cls, id, artist_ids, artist_names):
@@ -50,11 +47,6 @@ class Request(AggregateBase):
       raise TypeError("artists is required")
 
     ret_val._raise_event(RequestSubmitted1(id, artist_ids, artist_names))
-
-    # todo have this be in its own event handler
-    playlist = create_playlist(id)
-    external_url = playlist['external_urls']['spotify']
-    ret_val._raise_event(PlaylistCreatedForRequest(playlist['name'], constants.SPOTIFY, playlist['id'], external_url))
 
     return ret_val
 
@@ -81,7 +73,7 @@ class Request(AggregateBase):
                    root_artist_id)
 
   def refresh_playlist(self):
-    if self.playlist.track_ids: raise InvalidRequestError('playlist already refreshed')
+    if self.playlist_id.track_ids: raise InvalidRequestError('playlist already refreshed')
 
     playlist_track_ids = []
     artists_ids_in_playlist = set()
@@ -194,8 +186,14 @@ class Request(AggregateBase):
 
     if playlist_track_ids:
       self._raise_event(
-          PlaylistRefreshedWithTracks1(playlist_track_ids, artists_ids_in_playlist, self.playlist.provider_type,
-                                       self.playlist.external_id))
+        PlaylistRefreshedWithTracks1(playlist_track_ids, artists_ids_in_playlist, self.playlist_id.provider_type,
+                                     self.playlist_id.external_id))
+
+  def link_playlist(self, playlist_id):
+    if self.playlist_id:
+      raise PlaylistAlreadyExistsError(f'playlist_id: {self.playlist_id} already exists.')
+
+    self._raise_event(RequestLinkedWithPlaylist1(playlist_id))
 
   def _handle_submitted_1_event(self, event):
     self.id = event.id
@@ -207,11 +205,12 @@ class Request(AggregateBase):
   def _handle_artist_skipped_1_event(self, event):
     pass
 
-  def _handle_playlist_created_1_event(self, event):
-    self.playlist = SpotifyPlaylist(event.data['provider_type'], event.data['external_id'])
-
   def _handle_playlist_refreshed_1_event(self, event):
-    self.playlist = SpotifyPlaylist(self.playlist.provider_type, self.playlist.external_id, event.data['track_ids'])
+    self.playlist_id = SpotifyPlaylist(self.playlist_id.provider_type, self.playlist_id.external_id,
+                                       event.data['track_ids'])
+
+  def _handle_playlist_linked_1_event(self, event):
+    self.playlist_id = event.playlist_id
 
   def __str__(self):
     class_name = self.__class__.__name__
