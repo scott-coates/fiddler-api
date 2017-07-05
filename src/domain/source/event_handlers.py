@@ -30,8 +30,8 @@ def create_source_from_event(**kwargs):
   music_event_url = event.attrs[constants.URL]
 
   source_attrs = {
-    'entity_type': 'event',
-    'entity_id': event.id,
+    constants.ENTITY_TYPE: 'event',
+    constants.ENTITY_ID: event.id,
     constants.URL: music_event_url,
   }
 

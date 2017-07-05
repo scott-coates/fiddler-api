@@ -1,6 +1,9 @@
 ID = 'id'
 ATTRS = 'attrs'
 
+ENTITY_TYPE = 'entity_type'
+ENTITY_ID = 'entity_id'
+
 SPOTIFY = 'spotify'
 PLAYLIST = 'playlist'
 WEBSITE = 'website'
