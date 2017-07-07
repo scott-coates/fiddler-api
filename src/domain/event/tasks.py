@@ -1,24 +1,15 @@
 import logging
 
-from django.core.exceptions import ObjectDoesNotExist
+from tasktiger import linear
 
-from src.domain.event import service
-from src.libs.python_utils.logging.logging_utils import log_wrapper
+from src.domain.event.commands import RefreshEventPlaylist
+from src.libs.common_domain import dispatcher
+from src.libs.job_utils.job_decorator import job
 
 logger = logging.getLogger(__name__)
 
 
-@job(queue='high')
-def create_asset_lookup_task(asset_id, name, path):
-  # check if already exists - idempotent
-  try:
-    at = service.get_asset_lookup(asset_id)
-    logger.debug('UserAgreementType already exists: %s', asset_id)
-
-    return at.id
-
-  except ObjectDoesNotExist:
-    log_message = ("Create user asset_lookup task for asset_id: %s", asset_id)
-
-    with log_wrapper(logger.info, *log_message):
-      return service.create_asset_lookup(asset_id, name, path).id
+@job(queue='high', retry=True, retry_method=linear(5, 5, 10))
+def refresh_event_playlist_task(request_id):
+  refresh = RefreshEventPlaylist()
+  dispatcher.send_command(request_id, refresh)

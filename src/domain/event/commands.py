@@ -9,3 +9,19 @@ class CreateEvent(DomainCommand):
   @initializer
   def __init__(self, id, name, attrs):
     pass
+
+
+class AssociateArtistWithEvent(DomainCommand):
+  command_signal = CommandSignal()
+
+  @initializer
+  def __init__(self, artist_id):
+    pass
+
+
+class RefreshEventPlaylist(DomainCommand):
+  command_signal = CommandSignal()
+
+  @initializer
+  def __init__(self, ):
+    pass

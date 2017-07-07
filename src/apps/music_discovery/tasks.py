@@ -4,13 +4,13 @@ from itertools import groupby
 
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
-from tasktiger import linear, Task, periodic
+from tasktiger import Task, periodic
 
 from src.apps.music_discovery import service
+from src.apps.read_model.key_value.event.service import provide_journal_artist_for_event
 from src.apps.read_model.key_value.request.service import provide_journal_artists_for_request
 from src.domain.artist.errors import TopTracksExistError, DuplicateTrackError
-from src.domain.request.commands import RefreshPlaylist
-from src.libs.common_domain import dispatcher
+from src.domain.common import constants
 from src.libs.job_utils.job_decorator import job
 from src.libs.job_utils.shared_tiger_connection import get_shared_tiger_connection
 from src.libs.python_utils.logging.logging_utils import log_wrapper
@@ -141,12 +141,6 @@ def discover_tracks_for_album_task(album_id, artist_id):
     pass
 
 
-@job(queue='high', retry=True, retry_method=linear(5, 5, 10))
-def refresh_request_playlist_task(request_id):
-  refresh = RefreshPlaylist()
-  dispatcher.send_command(request_id, refresh)
-
-
 @job(queue='high', extended_retry=True)
 def update_playlist_with_tracks_task(playlist_id, track_ids, ):
   return service.update_playlist_with_tracks(playlist_id, track_ids)
@@ -209,5 +203,25 @@ def artist_top_track_discover_schedule_task(artist_id):
 
 
 @job(queue='default')
+def discover_music_from_artist_website_and_associate_with_entity_task(url, attrs):
+  artist_id = discover_music_from_artist_website_task(url)
+
+  if artist_id:
+    
+    if attrs[constants.ENTITY_TYPE] == constants.EVENT:
+      event_id = attrs[constants.ENTITY_ID]
+
+      provide_journal_artist_for_event(attrs[constants.ENTITY_ID], artist_id)
+
+      associate_artist_with_event_task.delay(event_id, artist_id)
+
+
+@job(queue='default')
 def discover_music_from_artist_website_task(url):
-  return service.discover_music_from_artist_website(url)
+  artist_id = service.discover_music_from_artist_website(url)
+  return artist_id
+
+
+@job(queue='default')
+def associate_artist_with_event_task(event_id, artist_id):
+  return service.associate_artist_with_event(event_id, artist_id)

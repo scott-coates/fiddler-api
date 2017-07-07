@@ -10,3 +10,12 @@ class EventCreated1(DomainEvent):
   @initializer
   def __init__(self, id, name, attrs):
     super().__init__()
+
+
+class ArtistAssociated1(DomainEvent):
+  event_func_name = 'artist_associated_1'
+  event_signal = EventSignal()
+
+  @initializer
+  def __init__(self, artist_id):
+    super().__init__()

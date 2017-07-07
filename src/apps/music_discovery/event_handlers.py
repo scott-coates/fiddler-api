@@ -5,7 +5,9 @@ from django.dispatch import receiver
 
 from src.apps.music_discovery import tasks
 from src.apps.music_discovery.signals import artist_url_discovered
+from src.apps.read_model.key_value.event.service import provide_journal_artist_for_event
 from src.domain.common import constants
+from src.domain.event.events import EventCreated1
 from src.domain.request.events import RequestSubmitted1, PlaylistRefreshedWithTracks1, PlaylistCreatedForRequest
 from src.libs.common_domain.decorators import event_idempotent
 
@@ -46,5 +48,6 @@ def open_playlist(**kwargs):
 @receiver(artist_url_discovered)
 def artist_url_callback(sender, **kwargs):
   url = kwargs[constants.URL]
+  attrs = kwargs[constants.ATTRS]
 
-  tasks.discover_music_from_artist_website_task.delay(url)
+  tasks.discover_music_from_artist_website_and_associate_with_entity_task.delay(url, attrs)

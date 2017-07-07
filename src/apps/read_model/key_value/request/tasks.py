@@ -1,9 +1,9 @@
 import logging
 
-from src.apps.music_discovery.tasks import refresh_request_playlist_task
 from src.apps.read_model.key_value.request import service
 from src.apps.read_model.key_value.request.service import get_processed_artists_for_request, \
   get_journaled_artists_for_request
+from src.domain.request.tasks import refresh_request_playlist_task
 from src.libs.job_utils.job_decorator import job
 from src.libs.python_utils.logging.logging_utils import log_wrapper
 

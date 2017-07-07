@@ -19,10 +19,11 @@ from src.domain.artist.commands import CreateArtist, AddAlbum, AddTopTracksToArt
 from src.domain.artist.entities import Artist
 from src.domain.artist.errors import DuplicateArtistError, DuplicateAlbumError, InvalidRelatedArtistError
 from src.domain.common import constants
+from src.domain.event.commands import AssociateArtistWithEvent
 from src.domain.genre.commands import CreateGenre
 from src.domain.genre.errors import DuplicateGenreError
 from src.domain.request.commands import SubmitArtistToRequest
-from src.libs.common_domain import aggregate_repository
+from src.libs.common_domain import aggregate_repository, dispatcher
 from src.libs.common_domain.dispatcher import send_command
 from src.libs.datetime_utils.datetime_parser import get_datetime
 from src.libs.python_utils.id.id_utils import generate_id
@@ -355,20 +356,21 @@ def discover_music_from_website(attrs, provider_type):
 
     # visit homepage and search for a term
     sess.visit(url)
-    links = sess.css('#outer-page-wrapper .save-content a')#[:10]
-    for link in links:
+    links = sess.css('#outer-page-wrapper .save-content a')  # [:10]
+    for link in links[:5]:
       artist_url = link.get_attr('href')
-      artist_url_discovered.send(None, url=artist_url)
+      artist_url_discovered.send(None, url=artist_url, attrs=attrs)
 
   return ret_val
 
 
 def discover_music_from_artist_website(url):
+  ret_val = None
   # set up a web scraping session
   sess = scraper.Session()
 
   try:
-    sess.set_timeout(10) # seconds
+    sess.set_timeout(10)  # seconds
     # we don't need images
     sess.set_attribute('auto_load_images', False)
     # visit homepage and search for a term
@@ -378,7 +380,9 @@ def discover_music_from_artist_website(url):
     if spotify_link:
       spotify_id = spotify_link.get_attr('href').split('/')[-1]
       artist = sp.artist(spotify_id)
-      create_artist_from_spotify_object(artist)
+      ret_val = create_artist_from_spotify_object(artist)
+
+    return ret_val
   except InvalidResponseError:
     # timeout error
     pass
@@ -387,3 +391,8 @@ def discover_music_from_artist_website(url):
     # guarantees a cleanup - not working in task tiger
     # https://dryscrape.readthedocs.io/en/latest/apidoc.html#webkit_server.Server.kill
     # https://github.com/closeio/tasktiger/issues/65
+
+
+def associate_artist_with_event(event_id, artist_id):
+  command = AssociateArtistWithEvent(artist_id)
+  dispatcher.send_command(event_id, command)
