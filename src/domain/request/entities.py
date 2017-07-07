@@ -10,10 +10,10 @@ from src.apps.music_discovery.service import create_playlist
 from src.apps.read_model.key_value.artist.service import get_artist_info, get_artist_albums, get_album_info, \
   get_track_info
 from src.domain.common import constants
+from src.domain.common.value_objects.playlist import Playlist
 from src.domain.request.errors import InvalidRequestError
 from src.domain.request.events import RequestSubmitted1, PlaylistCreatedForRequest, \
   PlaylistRefreshedWithTracks1, ArtistPromotedToRequest1, ArtistSkippedByRequest1
-from src.domain.request.value_objects import SpotifyPlaylist
 from src.libs.common_domain.aggregate_base import AggregateBase
 
 logger = logging.getLogger(__name__)
@@ -194,8 +194,8 @@ class Request(AggregateBase):
 
     if playlist_track_ids:
       self._raise_event(
-          PlaylistRefreshedWithTracks1(playlist_track_ids, artists_ids_in_playlist, self.playlist.provider_type,
-                                       self.playlist.external_id))
+        PlaylistRefreshedWithTracks1(playlist_track_ids, artists_ids_in_playlist, self.playlist.provider_type,
+                                     self.playlist.external_id))
 
   def _handle_submitted_1_event(self, event):
     self.id = event.id
@@ -208,10 +208,10 @@ class Request(AggregateBase):
     pass
 
   def _handle_playlist_created_1_event(self, event):
-    self.playlist = SpotifyPlaylist(event.data['provider_type'], event.data['external_id'])
+    self.playlist = Playlist(event.data['provider_type'], event.data['external_id'])
 
   def _handle_playlist_refreshed_1_event(self, event):
-    self.playlist = SpotifyPlaylist(self.playlist.provider_type, self.playlist.external_id, event.data['track_ids'])
+    self.playlist = Playlist(self.playlist.provider_type, self.playlist.external_id, event.data['track_ids'])
 
   def __str__(self):
     class_name = self.__class__.__name__
