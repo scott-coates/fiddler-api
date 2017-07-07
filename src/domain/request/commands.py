@@ -29,3 +29,10 @@ class RefreshPlaylist(DomainCommand):
   @initializer
   def __init__(self, ):
     pass
+
+class CreatePlaylistForRequest(DomainCommand):
+  command_signal = CommandSignal()
+
+  @initializer
+  def __init__(self, ):
+    pass

@@ -1,7 +1,6 @@
 import logging
 
 from django.core.exceptions import ObjectDoesNotExist
-from django_rq import job
 
 from src.domain.event import service
 from src.libs.python_utils.logging.logging_utils import log_wrapper

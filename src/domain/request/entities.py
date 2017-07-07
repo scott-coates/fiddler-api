@@ -51,11 +51,6 @@ class Request(AggregateBase):
 
     ret_val._raise_event(RequestSubmitted1(id, artist_ids, artist_names))
 
-    # todo have this be in its own event handler
-    playlist = create_playlist(id)
-    external_url = playlist['external_urls']['spotify']
-    ret_val._raise_event(PlaylistCreatedForRequest(playlist['name'], constants.SPOTIFY, playlist['id'], external_url))
-
     return ret_val
 
   def submit_potential_artist(self, artist_id, root_artist_id):
@@ -79,6 +74,14 @@ class Request(AggregateBase):
     else:
       logger.debug('Skipping artist_id: %s already in promoted artist for root_artist: %s.', artist_id,
                    root_artist_id)
+
+  def create_playlist(self):
+    if self.playlist:
+      raise Exception('playlist already created')
+    
+    playlist = create_playlist(self.id)
+    external_url = playlist['external_urls']['spotify']
+    self._raise_event(PlaylistCreatedForRequest(playlist['name'], constants.SPOTIFY, playlist['id'], external_url))
 
   def refresh_playlist(self):
     if self.playlist.track_ids: raise InvalidRequestError('playlist already refreshed')

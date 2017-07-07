@@ -1,7 +1,6 @@
 from django.dispatch import receiver
 
-from src.apps.read_model.key_value.artist.service import get_album_tracks
-from src.domain.request.commands import SubmitArtistToRequest, SubmitRequest, RefreshPlaylist
+from src.domain.request.commands import SubmitArtistToRequest, SubmitRequest, RefreshPlaylist, CreatePlaylistForRequest
 from src.domain.request.entities import Request
 from src.libs.common_domain import aggregate_repository
 
@@ -42,3 +41,16 @@ def refresh_album_request(_aggregate_repository=None, **kwargs):
     ag.refresh_playlist()
 
     _aggregate_repository.save(ag, version)
+
+
+@receiver(CreatePlaylistForRequest.command_signal)
+def create_playlist_for_request(_aggregate_repository=None, **kwargs):
+  if not _aggregate_repository: _aggregate_repository = aggregate_repository
+
+  ag = _aggregate_repository.get(Request, kwargs['aggregate_id'])
+
+  version = ag.version
+
+  ag.create_playlist()
+
+  _aggregate_repository.save(ag, version)
