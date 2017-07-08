@@ -27,6 +27,7 @@ from src.domain.request.commands import SubmitArtistToRequest
 from src.libs.common_domain import aggregate_repository, dispatcher
 from src.libs.common_domain.dispatcher import send_command
 from src.libs.datetime_utils.datetime_parser import get_datetime
+from src.libs.python_utils.data_structure.data_structure_utils import chunks
 from src.libs.python_utils.id.id_utils import generate_id
 from src.libs.scraper_utils.services.dryscrape_scraper import scraper
 
@@ -168,16 +169,25 @@ def create_playlist(name):
 
 
 def update_playlist_with_tracks(playlist_external_id, track_ids, ):
-  spotify_track_ids = []
+  ret_val = []
 
-  # todo fix 100 limit - add new playlists
-  for t in track_ids[:100]:
-    track_data = get_track_external_id(t)
-    spotify_track_ids.append(track_data['external_id'])
+  # batch into 100 tracks
+  batched_track_ids = chunks(track_ids, 100)
 
-  results = user_auth_sp.user_playlist_replace_tracks(settings.SPOTIFY_PLAYLIST_USER_NAME, playlist_external_id,
-                                                      spotify_track_ids)
-  return results
+  for batch in batched_track_ids:
+    spotify_track_ids = []
+
+    for t in batch:
+      track_data = get_track_external_id(t)
+      spotify_track_ids.append(track_data['external_id'])
+
+    results = user_auth_sp.user_playlist_add_tracks(
+      settings.SPOTIFY_PLAYLIST_USER_NAME, playlist_external_id, spotify_track_ids
+    )
+
+    ret_val.append(results)
+
+  return ret_val
 
 
 def _create_genre(name, provider_type, external_id):

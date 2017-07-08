@@ -49,8 +49,6 @@ class Event(AggregateBase):
     self._raise_event(PlaylistCreatedForEvent(playlist['name'], constants.SPOTIFY, playlist['id'], external_url))
 
   def refresh_playlist(self):
-    if self.playlist and self.playlist.track_ids: raise Exception('playlist already refreshed')
-
     playlist_track_ids = []
     # loop through each artist
     # add top three tracks to playlist
