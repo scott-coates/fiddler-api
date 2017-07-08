@@ -1,3 +1,4 @@
+import html
 import logging
 from atexit import _run_exitfuncs
 from itertools import groupby
@@ -369,7 +370,7 @@ def discover_music_from_website(attrs, provider_type):
 
 
 def discover_music_from_artist_website(url):
-  ret_val = None
+  ret_val = {}
   # set up a web scraping session
   sess = scraper.Session()
 
@@ -381,10 +382,16 @@ def discover_music_from_artist_website(url):
     sess.visit(url)
 
     spotify_link = sess.at_xpath("//a[contains(@href,'spotify.com/artist')]")
-    if spotify_link:
-      spotify_id = spotify_link.get_attr('href').split('/')[-1]
-      artist = sp.artist(spotify_id)
-      ret_val = create_artist_from_spotify_object(artist)
+    try:
+      if spotify_link:
+        spotify_id = spotify_link.get_attr('href').split('/')[-1]
+        ret_val['spotify_id'] = spotify_id
+      else:
+        title = sess.css('title')[0].text()
+        title = html.unescape(title)
+        ret_val['title'] = title
+    except Exception:
+      logger.warning('error getting title for site: %s', url, exc_info=True)
 
     return ret_val
   except InvalidResponseError:
@@ -408,5 +415,12 @@ def create_artist_from_name(artist_name):
 
   if artist:
     artist_id = create_artist_from_spotify_object(artist)
+
+  return artist_id
+
+
+def create_artist_from_spotify_id(spotify_id):
+  artist = sp.artist(spotify_id)
+  artist_id = create_artist_from_spotify_object(artist)
 
   return artist_id
