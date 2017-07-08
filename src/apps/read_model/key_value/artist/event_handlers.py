@@ -101,3 +101,13 @@ def refreshed_top_tracks_1(**kwargs):
   #   tasks.save_recent_prospect_discovery_network_connections_from_eo_task.delay(
   #       attrs, provider_type, prospect_id
   #   )
+
+
+@event_idempotent
+@receiver(ArtistCreated1.event_signal)
+def artist_created_genre(**kwargs):
+  event = kwargs['event']
+  name = event.data['name']
+  genre_names = event.data['genre_names']
+
+  tasks.add_artist_to_genre_task(name, genre_names)

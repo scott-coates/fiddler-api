@@ -110,7 +110,7 @@ def create_album_from_spotify_uri(sp_album_uri, artist_id):
 def create_artist_from_spotify_object(artist):
   genres = artist['genres']
   genre_ids = [_create_genre(g, constants.SPOTIFY, g) for g in genres]
-  return _create_artist(artist['name'], genre_ids, artist['popularity'], constants.SPOTIFY, artist['id'])
+  return _create_artist(artist['name'], genre_ids, genres, artist['popularity'], constants.SPOTIFY, artist['id'])
 
 
 def get_sp_artist_by_name(artist_name):
@@ -191,11 +191,11 @@ def _create_genre(name, provider_type, external_id):
   return genre_id
 
 
-def _create_artist(name, genres, popularity, provider_type, external_id):
+def _create_artist(name, genre_ids, genre_names, popularity, provider_type, external_id):
   artist_id = generate_id()
 
   try:
-    ca = CreateArtist(artist_id, name, genres, popularity, provider_type, external_id)
+    ca = CreateArtist(artist_id, name, genre_ids, genre_names, popularity, provider_type, external_id)
     send_command(artist_id, ca)
   except DuplicateArtistError:
     artist_id = get_unique_artist_id(provider_type, external_id)

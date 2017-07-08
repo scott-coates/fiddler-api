@@ -226,3 +226,10 @@ def get_track_info(track_id):
   ret_val['id'] = track_id
 
   return ret_val
+
+
+def add_artist_to_genre(name, genre_names):
+  kdb = get_key_value_client()
+
+  for genre_name in genre_names:
+    kdb.sadd(get_read_model_name('genre_artist:{0}', genre_name), name)
