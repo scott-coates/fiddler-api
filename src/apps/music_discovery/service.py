@@ -392,8 +392,6 @@ def discover_music_from_artist_website(url):
         ret_val['title'] = title
     except Exception:
       logger.warning('error getting title for site: %s', url, exc_info=True)
-
-    return ret_val
   except InvalidResponseError:
     # timeout error
     pass
@@ -402,6 +400,8 @@ def discover_music_from_artist_website(url):
     # guarantees a cleanup - not working in task tiger
     # https://dryscrape.readthedocs.io/en/latest/apidoc.html#webkit_server.Server.kill
     # https://github.com/closeio/tasktiger/issues/65
+
+  return ret_val
 
 
 def associate_artist_with_event(event_id, artist_id):
