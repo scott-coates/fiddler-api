@@ -7,6 +7,7 @@ from django.utils import timezone
 from tasktiger import Task, periodic
 
 from src.apps.music_discovery import service
+from src.apps.music_discovery.service import create_artist_from_name
 from src.apps.read_model.key_value.event.service import provide_journal_artist_for_event
 from src.apps.read_model.key_value.request.service import provide_journal_artists_for_request
 from src.domain.artist.errors import TopTracksExistError, DuplicateTrackError
@@ -202,9 +203,12 @@ def artist_top_track_discover_schedule_task(artist_id):
   return discover_top_tracks_for_artist_task(artist_id)
 
 
-@job(queue='default')
-def discover_music_from_artist_website_and_associate_with_entity_task(url, attrs):
+@job(queue='default', extended_retry=True)
+def discover_music_from_artist_website_and_associate_with_entity_task(name, url, attrs):
   artist_id = discover_music_from_artist_website_task(url)
+
+  if not artist_id:
+    artist_id = create_artist_from_name(name)
 
   if artist_id:
 

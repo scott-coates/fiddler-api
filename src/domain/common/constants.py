@@ -10,6 +10,9 @@ WEBSITE = 'website'
 
 URL = 'url'
 EVENT = 'event'
+NAME = 'name'
 
 USER_EXTERNAL_ID = 'user_external_id'
 PLAYLIST_EXTERNAL_ID = 'playlist_external_id'
+
+

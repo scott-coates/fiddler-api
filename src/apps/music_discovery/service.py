@@ -169,7 +169,8 @@ def create_playlist(name):
 def update_playlist_with_tracks(playlist_external_id, track_ids, ):
   spotify_track_ids = []
 
-  for t in track_ids:
+  # todo fix 100 limit - add new playlists
+  for t in track_ids[:100]:
     track_data = get_track_external_id(t)
     spotify_track_ids.append(track_data['external_id'])
 
@@ -356,11 +357,13 @@ def discover_music_from_website(attrs, provider_type):
 
     # visit homepage and search for a term
     sess.visit(url)
-    links = sess.css('#outer-page-wrapper .save-content a')  # [:10]
-    # for link in links[:5]:
-    for link in links:
-      artist_url = link.get_attr('href')
-      artist_url_discovered.send(None, url=artist_url, attrs=attrs)
+    artist_links = sess.css('.marcato-listing-artist')  # [:10]
+    # for link in artist_links[:5]:
+    for link in artist_links:
+      artist_name = link.css('h3')[0].text()
+      artist_url = link.css('.save-content a')[0].get_attr('href')
+
+      artist_url_discovered.send(None, name=artist_name, url=artist_url, attrs=attrs)
 
   return ret_val
 
@@ -397,3 +400,13 @@ def discover_music_from_artist_website(url):
 def associate_artist_with_event(event_id, artist_id):
   command = AssociateArtistWithEvent(artist_id)
   dispatcher.send_command(event_id, command)
+
+
+def create_artist_from_name(artist_name):
+  artist_id = None
+  artist = get_sp_artist_by_name(artist_name)
+
+  if artist:
+    artist_id = create_artist_from_spotify_object(artist)
+
+  return artist_id

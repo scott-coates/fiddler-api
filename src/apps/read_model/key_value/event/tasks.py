@@ -24,9 +24,10 @@ def process_artist_event_task(event_id, artist_id):
     intersection_count = len(
       set(processed_artists_count_for_event).intersection(set(journaled_artists_count_for_event))
     )
+
     logger.debug(
-      "processed_artists_count_for_event: %s. journaled_artists_count_for_event: %s.",
-      processed_artists_count_for_event, journaled_artists_count_for_event
+      "intersection_count: %s. journaled_artists_count_for_event: %s.",
+      intersection_count, len(journaled_artists_count_for_event)
     )
 
     if intersection_count == len(journaled_artists_count_for_event):

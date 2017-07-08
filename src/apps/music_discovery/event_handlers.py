@@ -67,7 +67,8 @@ def open_event_playlist(**kwargs):
 
 @receiver(artist_url_discovered)
 def artist_url_callback(sender, **kwargs):
+  name = kwargs[constants.NAME]
   url = kwargs[constants.URL]
   attrs = kwargs[constants.ATTRS]
 
-  tasks.discover_music_from_artist_website_and_associate_with_entity_task.delay(url, attrs)
+  tasks.discover_music_from_artist_website_and_associate_with_entity_task.delay(name, url, attrs)

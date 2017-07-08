@@ -58,8 +58,8 @@ class Event(AggregateBase):
     for artist_id in self._artist_ids:
       artist_info = get_artist_info(artist_id)
       top_tracks = artist_info['top_tracks']
-
-      chosen_tracks = random.sample(top_tracks, k=3)
+      k = 3 if len(top_tracks) >= 3 else len(top_tracks)
+      chosen_tracks = random.sample(top_tracks, k=k)
 
       playlist_track_ids.extend(t['track_id'] for t in chosen_tracks)
 
