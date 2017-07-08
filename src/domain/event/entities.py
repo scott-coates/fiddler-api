@@ -1,8 +1,12 @@
 import random
 
+from src.apps.music_discovery.service import create_playlist
 from src.apps.read_model.key_value.artist.service import get_artist_info
+from src.domain.common import constants
 from src.domain.common.value_objects.playlist import Playlist
-from src.domain.event.events import EventCreated1, ArtistAssociated1, PlaylistRefreshedWithTracks1
+from src.domain.event.events import EventCreated1, ArtistAssociated1, EventPlaylistRefreshedWithTracks1, \
+  PlaylistCreatedForEvent
+from src.domain.request.events import PlaylistCreatedForRequest
 from src.libs.common_domain.aggregate_base import AggregateBase
 
 
@@ -36,6 +40,14 @@ class Event(AggregateBase):
 
     self._raise_event(ArtistAssociated1(artist_id))
 
+  def create_playlist(self):
+    if self.playlist:
+      raise Exception('playlist already created')
+
+    playlist = create_playlist(self.id)
+    external_url = playlist['external_urls']['spotify']
+    self._raise_event(PlaylistCreatedForEvent(playlist['name'], constants.SPOTIFY, playlist['id'], external_url))
+
   def refresh_playlist(self):
     if self.playlist and self.playlist.track_ids: raise Exception('playlist already refreshed')
 
@@ -52,7 +64,7 @@ class Event(AggregateBase):
       playlist_track_ids.extend(t['track_id'] for t in chosen_tracks)
 
     self._raise_event(
-      PlaylistRefreshedWithTracks1(playlist_track_ids, self.playlist.provider_type, self.playlist.external_id)
+      EventPlaylistRefreshedWithTracks1(playlist_track_ids, self.playlist.provider_type, self.playlist.external_id)
     )
 
   def _handle_created_1_event(self, event):
@@ -62,6 +74,9 @@ class Event(AggregateBase):
 
   def _handle_artist_associated_1_event(self, event):
     self._artist_ids.append(event.artist_id)
+
+  def _handle_playlist_created_1_event(self, event):
+    self.playlist = Playlist(event.data['provider_type'], event.data['external_id'])
 
   def _handle_playlist_refreshed_1_event(self, event):
     self.playlist = Playlist(event.data['provider_type'], event.data['external_id'])

@@ -13,7 +13,7 @@ from src.domain.common import constants
 from src.domain.common.value_objects.playlist import Playlist
 from src.domain.request.errors import InvalidRequestError
 from src.domain.request.events import RequestSubmitted1, PlaylistCreatedForRequest, \
-  PlaylistRefreshedWithTracks1, ArtistPromotedToRequest1, ArtistSkippedByRequest1
+  RequestPlaylistRefreshedWithTracks1, ArtistPromotedToRequest1, ArtistSkippedByRequest1
 from src.libs.common_domain.aggregate_base import AggregateBase
 
 logger = logging.getLogger(__name__)
@@ -199,8 +199,8 @@ class Request(AggregateBase):
 
     if playlist_track_ids:
       self._raise_event(
-        PlaylistRefreshedWithTracks1(playlist_track_ids, artists_ids_in_playlist, self.playlist.provider_type,
-                                     self.playlist.external_id))
+        RequestPlaylistRefreshedWithTracks1(playlist_track_ids, artists_ids_in_playlist, self.playlist.provider_type,
+                                            self.playlist.external_id))
 
   def _handle_submitted_1_event(self, event):
     self.id = event.id

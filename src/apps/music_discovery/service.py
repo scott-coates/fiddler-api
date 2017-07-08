@@ -166,14 +166,14 @@ def create_playlist(name):
   return playlist
 
 
-def update_playlist_with_tracks(playlist_id, track_ids, ):
+def update_playlist_with_tracks(playlist_external_id, track_ids, ):
   spotify_track_ids = []
 
   for t in track_ids:
     track_data = get_track_external_id(t)
     spotify_track_ids.append(track_data['external_id'])
 
-  results = user_auth_sp.user_playlist_replace_tracks(settings.SPOTIFY_PLAYLIST_USER_NAME, playlist_id,
+  results = user_auth_sp.user_playlist_replace_tracks(settings.SPOTIFY_PLAYLIST_USER_NAME, playlist_external_id,
                                                       spotify_track_ids)
   return results
 

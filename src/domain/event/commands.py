@@ -25,3 +25,11 @@ class RefreshEventPlaylist(DomainCommand):
   @initializer
   def __init__(self, ):
     pass
+
+
+class CreatePlaylistForEvent(DomainCommand):
+  command_signal = CommandSignal()
+
+  @initializer
+  def __init__(self, ):
+    pass

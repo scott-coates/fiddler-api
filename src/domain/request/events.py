@@ -39,7 +39,7 @@ class ArtistSkippedByRequest1(DomainEvent):
     super().__init__()
 
 
-class PlaylistRefreshedWithTracks1(DomainEvent):
+class RequestPlaylistRefreshedWithTracks1(DomainEvent):
   event_func_name = 'playlist_refreshed_1'
   event_signal = EventSignal()
 

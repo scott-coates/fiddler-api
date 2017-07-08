@@ -1,6 +1,7 @@
 from django.dispatch import receiver
 
-from src.domain.event.commands import CreateEvent, AssociateArtistWithEvent, RefreshEventPlaylist
+from src.domain.event.commands import CreateEvent, AssociateArtistWithEvent, RefreshEventPlaylist, \
+  CreatePlaylistForEvent
 from src.domain.event.entities import Event
 from src.libs.common_domain import aggregate_repository
 
@@ -40,5 +41,18 @@ def refersh_event_playlist(_aggregate_repository=None, **kwargs):
   version = ag.version
 
   ag.refresh_playlist()
+
+  _aggregate_repository.save(ag, version)
+
+
+@receiver(CreatePlaylistForEvent.command_signal)
+def create_playlist_for_event(_aggregate_repository=None, **kwargs):
+  if not _aggregate_repository: _aggregate_repository = aggregate_repository
+
+  ag = _aggregate_repository.get(Event, kwargs['aggregate_id'])
+
+  version = ag.version
+
+  ag.create_playlist()
 
   _aggregate_repository.save(ag, version)

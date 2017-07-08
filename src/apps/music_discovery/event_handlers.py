@@ -7,8 +7,8 @@ from src.apps.music_discovery import tasks
 from src.apps.music_discovery.signals import artist_url_discovered
 from src.apps.read_model.key_value.event.service import provide_journal_artist_for_event
 from src.domain.common import constants
-from src.domain.event.events import EventCreated1
-from src.domain.request.events import RequestSubmitted1, PlaylistRefreshedWithTracks1, PlaylistCreatedForRequest
+from src.domain.event.events import EventCreated1, EventPlaylistRefreshedWithTracks1, PlaylistCreatedForEvent
+from src.domain.request.events import RequestSubmitted1, RequestPlaylistRefreshedWithTracks1, PlaylistCreatedForRequest
 from src.libs.common_domain.decorators import event_idempotent
 
 logger = logging.getLogger(__name__)
@@ -26,8 +26,19 @@ def execute_assignment_batch_1(**kwargs):
 
 
 @event_idempotent
-@receiver(PlaylistRefreshedWithTracks1.event_signal)
-def playlist_refreshed_1(**kwargs):
+@receiver(RequestPlaylistRefreshedWithTracks1.event_signal)
+def request_playlist_refreshed_1(**kwargs):
+  event = kwargs['event']
+
+  external_id = event.data['external_id']
+  track_ids = event.data['track_ids']
+
+  tasks.update_playlist_with_tracks_task.delay(external_id, track_ids)
+
+
+@event_idempotent
+@receiver(EventPlaylistRefreshedWithTracks1.event_signal)
+def event_playlist_refreshed_1(**kwargs):
   event = kwargs['event']
 
   external_id = event.data['external_id']
@@ -38,6 +49,15 @@ def playlist_refreshed_1(**kwargs):
 
 @receiver(PlaylistCreatedForRequest.event_signal)
 def open_playlist(**kwargs):
+  event = kwargs['event']
+
+  spotify_url = event.data['external_url']
+  webbrowser.open(spotify_url)
+  logger.info(spotify_url)
+
+
+@receiver(PlaylistCreatedForEvent.event_signal)
+def open_event_playlist(**kwargs):
   event = kwargs['event']
 
   spotify_url = event.data['external_url']

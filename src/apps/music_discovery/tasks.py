@@ -142,8 +142,8 @@ def discover_tracks_for_album_task(album_id, artist_id):
 
 
 @job(queue='high', extended_retry=True)
-def update_playlist_with_tracks_task(playlist_id, track_ids, ):
-  return service.update_playlist_with_tracks(playlist_id, track_ids)
+def update_playlist_with_tracks_task(playlist_external_id, track_ids, ):
+  return service.update_playlist_with_tracks(playlist_external_id, track_ids)
 
 
 @job(queue='high', extended_retry=True)
@@ -207,7 +207,7 @@ def discover_music_from_artist_website_and_associate_with_entity_task(url, attrs
   artist_id = discover_music_from_artist_website_task(url)
 
   if artist_id:
-    
+
     if attrs[constants.ENTITY_TYPE] == constants.EVENT:
       event_id = attrs[constants.ENTITY_ID]
 

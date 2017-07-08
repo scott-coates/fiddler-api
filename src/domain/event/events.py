@@ -21,10 +21,20 @@ class ArtistAssociated1(DomainEvent):
     super().__init__()
 
 
-class PlaylistRefreshedWithTracks1(DomainEvent):
+class EventPlaylistRefreshedWithTracks1(DomainEvent):
   event_func_name = 'playlist_refreshed_1'
   event_signal = EventSignal()
 
   @initializer
   def __init__(self, track_ids, provider_type, external_id):
     super().__init__()
+
+
+class PlaylistCreatedForEvent(DomainEvent):
+  event_func_name = 'playlist_created_1'
+  event_signal = EventSignal()
+
+  @initializer
+  def __init__(self, name, provider_type, external_id, external_url):
+    super().__init__()
+
