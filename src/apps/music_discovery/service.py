@@ -357,7 +357,8 @@ def discover_music_from_website(attrs, provider_type):
     # visit homepage and search for a term
     sess.visit(url)
     links = sess.css('#outer-page-wrapper .save-content a')  # [:10]
-    for link in links[:5]:
+    # for link in links[:5]:
+    for link in links:
       artist_url = link.get_attr('href')
       artist_url_discovered.send(None, url=artist_url, attrs=attrs)
 
