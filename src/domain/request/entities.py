@@ -94,13 +94,15 @@ class Request(AggregateBase):
     track_count_per_root_artist = _get_track_count_per_root_artist(root_artist_count)
     for root_artist_id, promoted_artist_ids in self._promoted_artists.items():
       counter = 0
+
+      root_artist_data = get_artist_info(root_artist_id)
+      root_artist_top_track_data = [get_track_info(t['track_id']) for t in root_artist_data['top_tracks']]
+      root_artist_top_track_feature_d = defaultdict(list)
+      root_artist_top_track_features_data = {}
+
       while counter <= track_count_per_root_artist:
         promoted_artists_data = []
 
-        root_artist_data = get_artist_info(root_artist_id)
-        root_artist_top_track_data = [get_track_info(t['track_id']) for t in root_artist_data['top_tracks']]
-        root_artist_top_track_feature_d = defaultdict(list)
-        root_artist_top_track_features_data = {}
         for top_track_data in root_artist_top_track_data:
           features = top_track_data['features']
           for tf in self._track_features_filter:

@@ -1,4 +1,8 @@
-from src.domain.event.events import EventCreated1, ArtistAssociated1
+import random
+
+from src.apps.read_model.key_value.artist.service import get_artist_info
+from src.domain.common.value_objects.playlist import Playlist
+from src.domain.event.events import EventCreated1, ArtistAssociated1, PlaylistRefreshedWithTracks1
 from src.libs.common_domain.aggregate_base import AggregateBase
 
 
@@ -6,6 +10,7 @@ class Event(AggregateBase):
   def __init__(self):
     super().__init__()
     self._artist_ids = []
+    self.playlist = None
 
   @classmethod
   def from_attrs(cls, id, name, attrs):
@@ -32,7 +37,23 @@ class Event(AggregateBase):
     self._raise_event(ArtistAssociated1(artist_id))
 
   def refresh_playlist(self):
-    pass
+    if self.playlist and self.playlist.track_ids: raise Exception('playlist already refreshed')
+
+    playlist_track_ids = []
+    # loop through each artist
+    # add top three tracks to playlist
+
+    for artist_id in self._artist_ids:
+      artist_info = get_artist_info(artist_id)
+      top_tracks = artist_info['top_tracks']
+
+      chosen_tracks = random.choices(top_tracks, k=3)
+
+      playlist_track_ids.extend(t['track_id'] for t in chosen_tracks)
+
+    self._raise_event(
+      PlaylistRefreshedWithTracks1(playlist_track_ids, self.playlist.provider_type, self.playlist.external_id)
+    )
 
   def _handle_created_1_event(self, event):
     self.id = event.id
@@ -41,6 +62,9 @@ class Event(AggregateBase):
 
   def _handle_artist_associated_1_event(self, event):
     self._artist_ids.append(event.artist_id)
+
+  def _handle_playlist_refreshed_1_event(self, event):
+    self.playlist = Playlist(event.data['provider_type'], event.data['external_id'])
 
   def __str__(self):
     return 'Event {id}: {name}'.format(id=self.id, name=self.name)

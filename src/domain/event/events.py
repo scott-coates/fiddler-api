@@ -19,3 +19,12 @@ class ArtistAssociated1(DomainEvent):
   @initializer
   def __init__(self, artist_id):
     super().__init__()
+
+
+class PlaylistRefreshedWithTracks1(DomainEvent):
+  event_func_name = 'playlist_refreshed_1'
+  event_signal = EventSignal()
+
+  @initializer
+  def __init__(self, track_ids, provider_type, external_id):
+    super().__init__()
