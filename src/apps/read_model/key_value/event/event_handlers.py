@@ -12,6 +12,5 @@ def artist_associated_1(**kwargs):
 
   request_id = kwargs['aggregate_id']
   artist_id = event.data['artist_id']
-  root_artist_id = event.data['root_artist_id']
 
-  tasks.process_artist_event_task.delay(request_id, artist_id, root_artist_id)
+  tasks.process_artist_event_task.delay(request_id, artist_id)
