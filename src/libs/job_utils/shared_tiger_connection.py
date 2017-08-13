@@ -12,3 +12,10 @@ def get_shared_tiger_connection():
   return tiger
 
 
+def retry_tasks(queue='default', state='error'):
+  tiger = get_shared_tiger_connection()
+  n, tasks = Task.tasks_from_queue(tiger, queue, state)
+  for task in tasks:
+    task.retry()
+
+  return n
