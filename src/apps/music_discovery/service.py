@@ -58,9 +58,9 @@ def discover_music_for_request(request_id, root_artist_name):
   root_artist = get_sp_artist_by_name(root_artist_name)
   root_artist_id = create_artist_from_spotify_object(root_artist)
 
-  similar_artists = lfm_artist.get_similar(5)
+  # similar_artists = lfm_artist.get_similar(5)
   # similar_artists = lfm_artist.get_similar(25)
-  # similar_artists = lfm_artist.get_similar(100)
+  similar_artists = lfm_artist.get_similar(100)
 
   similar_artist_names = [a.item.name for a in similar_artists]
   all_artists_names = [lfm_artist.get_name()] + similar_artist_names

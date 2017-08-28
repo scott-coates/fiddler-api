@@ -47,27 +47,28 @@ request_id = generate_id()
 # when all bands are scraped from the source, we want to create a playlist for the event
 # and a playlist for each 'good' genre - some genres are too niche - selected genres
 
-event_attrs = {constants.URL: 'https://mileofmusic.com/lineup/'}
-
-send_command(-1, CreateEvent(
-  source_id, 'MoM 2017',
-  event_attrs
-))
-
-
-# artists = """
-# hot water music
-# """
+# event_attrs = {constants.URL: 'https://mileofmusic.com/lineup/'}
 #
-# artists = list(filter(bool, artists.split('\n')))
-#
-# artists_info = ([], [])
-# for artist_name in artists:
-#   artist = get_sp_artist_by_name(artist_name)
-#   artist_id = create_artist_from_spotify_object(artist)
-#   artists_info[0].append(artist_id)
-#   artists_info[1].append(artist['name'])
-# send_command(-1, SubmitRequest(request_id, artists_info[0], artists_info[1]))
+# send_command(-1, CreateEvent(
+#   source_id, 'MoM 2017',
+#   event_attrs
+# ))
+
+
+artists = """
+hot water music
+goldfinger
+"""
+
+artists = list(filter(bool, artists.split('\n')))
+
+artists_info = ([], [])
+for artist_name in artists:
+  artist = get_sp_artist_by_name(artist_name)
+  artist_id = create_artist_from_spotify_object(artist)
+  artists_info[0].append(artist_id)
+  artists_info[1].append(artist['name'])
+send_command(-1, SubmitRequest(request_id, artists_info[0], artists_info[1]))
 
 # endregion
 

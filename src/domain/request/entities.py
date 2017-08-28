@@ -120,8 +120,11 @@ class Request(AggregateBase):
           promoted_artist_data = get_artist_info(promoted_artist_id)
           promoted_artists_data.append(promoted_artist_data)
 
-        sorted_promoted_artists = sorted(promoted_artists_data,
-                                         key=lambda a: root_artist_genres.intersection(a['genres']), reverse=True)
+        # sorted_promoted_artists = sorted(promoted_artists_data,
+        #                                  key=lambda a: root_artist_genres.intersection(a['genres']), reverse=True)
+        # temp -- do not sort by genres until more artists have genre data
+
+        sorted_promoted_artists=promoted_artists_data
 
         for pa in sorted_promoted_artists:
           top_track_albums = defaultdict(list)
@@ -131,6 +134,7 @@ class Request(AggregateBase):
             top_track_albums[track['album_id']].append(track['track_id'])
 
           # grouped_top_tracks_by_album = groupby(pa_top_tracks, _get_album_id) -- NOT WORKING
+          # YES IT IS -- YOUY'RE JUST NOT SORTING FIRST
           albums = {a: get_album_info(a) for a in top_track_albums.keys()}
           for album_id, top_track_ids in top_track_albums.items():
             album = albums[album_id]
